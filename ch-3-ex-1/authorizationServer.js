@@ -147,11 +147,15 @@ app.post('/approve', function(req, res) {
 });
 
 app.post("/token", function(req, res){
-	
+
+  console.log('headers=' + JSON.stringify(req.headers));	
 	var auth = req.headers['authorization'];
+  
 	if (auth) {
+    console.log('checking auth header');
 		// check the auth header
 		var clientCredentials = new Buffer(auth.slice('basic '.length), 'base64').toString().split(':');
+    console.log(clientCredentials);
 		var clientId = querystring.unescape(clientCredentials[0]);
 		var clientSecret = querystring.unescape(clientCredentials[1]);
 	}
@@ -171,7 +175,7 @@ app.post("/token", function(req, res){
 	
 	var client = getClient(clientId);
 	if (!client) {
-		console.log('Unknown client %s', clientId);
+		console.log('--> Unknown client %s', clientId);
 		res.status(401).json({error: 'invalid_client'});
 		return;
 	}

@@ -59,11 +59,38 @@ app.get('/callback', function(req, res){
 	/*
 	 * Parse the response from the authorization server and get a token
 	 */
-	
-	// REMOVE THIS LINE
-	res.render('error', {error: 'Not implemented'});
-	// REMOVE THIS LINE
+	var code = req.query.code;
+  var form_data = qs.stringify({
+    grant_type: 'authorization_code',
+    code: code,
+    redirect_uri: client.redirect_uris[0]
+  });
 
+  var authorizationString = ''
+    + querystring.escape(client.client_id)
+    + ':'
+    + querystring.escape(client.client_secret);
+
+  console.log('as=' + authorizationString);
+  
+  var headers = {
+    'content-type': 'application/x-www-form-urlencoded',
+    'authorization': 'Basic ' + new Buffer(authorizationString).toString('base64')
+  };
+
+  var tokenResponse = request('POST', authServer.tokenEndpoint, {
+    body: form_data,
+    headers: headers
+  });
+
+  var body = JSON.parse(tokenResponse.getBody());
+
+  var access_token = body.access_token;
+
+  res.render('index', {
+    access_token: body.access_token,
+    scope: scope
+  });
 });
 
 app.get('/fetch_resource', function(req, res) {
