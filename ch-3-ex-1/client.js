@@ -20,16 +20,14 @@ var authServer = {
 };
 
 // client information
-
-
 /*
  * Add the client information in here
  */
 var client = {
-	"client_id": "",
-	"client_secret": "",
-	"redirect_uris": ["http://localhost:9000/callback"]
-};
+  'client_id': 'oauth-client-1',
+  'client_secret': 'oauth-client-secret-1',
+  'redirect_uris': ['http://localhost:9000/callback'] // 9000 => client
+}
 
 var protectedResource = 'http://localhost:9002/resource';
 
@@ -47,11 +45,13 @@ app.get('/authorize', function(req, res){
 	/*
 	 * Send the user to the authorization server
 	 */
+  var authorizeUrl = url.parse(authServer.authorizationEndpoint, true);
+  delete authorizeUrl.search;
+  authorizeUrl.query.response_type = 'code';
+  authorizeUrl.query.client_id = client.client_id;
+  authorizeUrl.query.redirect_uri = client.redirect_uris[0];
 	
-	// REMOVE THIS LINE
-	res.render('error', {error: 'Not implemented'});
-	// REMOVE THIS LINE
-
+  res.redirect(url.format(authorizeUrl));
 });
 
 app.get('/callback', function(req, res){
