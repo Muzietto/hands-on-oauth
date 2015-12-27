@@ -6,7 +6,6 @@ var querystring = require('querystring');
 var cons = require('consolidate');
 var randomstring = require("randomstring");
 
-
 var app = express();
 
 app.engine('html', cons.underscore);
@@ -40,7 +39,11 @@ app.get('/', function (req, res) {
 	res.render('index', {access_token: access_token, scope: scope});
 });
 
+var state;
+
 app.get('/authorize', function(req, res){
+
+  state = randomstring.generate();
 
 	/*
 	 * Send the user to the authorization server
@@ -50,11 +53,19 @@ app.get('/authorize', function(req, res){
   authorizeUrl.query.response_type = 'code';
   authorizeUrl.query.client_id = client.client_id;
   authorizeUrl.query.redirect_uri = client.redirect_uris[0];
+  authorizeUrl.query.state = state;
 	
   res.redirect(url.format(authorizeUrl));
 });
 
 app.get('/callback', function(req, res){
+
+  console.log('state=' + state);
+  console.log('req.query.state=' + req.query.state);
+  
+  if (req.query.state !== state) {
+    res.render('error', { error: 'State value didn\'t match!!!' });
+  }
 
 	/*
 	 * Parse the response from the authorization server and get a token
@@ -98,11 +109,11 @@ app.get('/fetch_resource', function(req, res) {
 	/*
 	 * Use the access token to call the resource server
 	 */
-	
-	// REMOVE THIS LINE
-	res.render('error', {error: 'Not implemented'});
-	// REMOVE THIS LINE
-	
+  if (!access_token) {
+	  res.render('error', { error: 'Missing access token' });
+  }
+  
+  
 });
 
 app.use('/', express.static('files/client'));
