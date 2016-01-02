@@ -128,10 +128,12 @@ app.get('/fetch_resource', function(req, res) {
 	);
 	
 	if (resource.statusCode >= 200 && resource.statusCode < 300) {
+  	consolle.log('Request was granted');
 		var body = JSON.parse(resource.getBody());
 		res.render('data', { resource: body });
 		return;
 	} else {
+  	consolle.log('Request was DENIED');
 		access_token = null;
 		
 		/*
@@ -142,7 +144,7 @@ app.get('/fetch_resource', function(req, res) {
       refreshAccessToken(req, res);
       return;
     } else {
-  		res.render('error', { error: resource.statusCode });
+  		res.render('error', { error: 'token refresh failed with status code ' + resource.statusCode });
 	  	return;
     }
 	}
@@ -168,8 +170,8 @@ var refreshAccessToken = function(req, res) {
     headers: headers
   });
   
-  consolle.log('Refresh attempt returned ' + tokRes.getBody());
   if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
+    consolle.log('Refresh attempt returned ' + tokRes.getBody());
     var body = JSON.parse(tokRes.getBody());
     access_token = body.access_token;
     
@@ -181,6 +183,7 @@ var refreshAccessToken = function(req, res) {
      
     res.redirect('/fetch_resource');
   } else {
+    consolle.log('Refresh attempt failed');
     refresh_token = null;
     res.render('error', { error: 'Unable to refresh token' });
     return;  

@@ -223,30 +223,38 @@ app.post("/token", function(req, res){
 			return;
 		}
 	} else if (req.body.grant_type == 'refresh_token') { // PECULIAR PART!!!
-		nosql.all(function(token) {
-			return (token.refresh_token == req.body.refresh_token);
-		}, function(err, tokens) {
-			if (tokens.length == 1) {
-				var token = tokens[0];
-				if (token.client_id != clientId) {
-					consolle.log('Invalid client using a refresh token, expected %s got %s', token.client_id, clientId);
-					nosql.remove(function(found) { return (found == token); }, function () {} );
-					res.status(400).end();
-					return
-				}
-				consolle.log("We found a matching token: %s", req.body.refresh_token);
-				var access_token = randomstring.generate();
-				var token_response = { access_token: access_token, token_type: 'Bearer',  refresh_token: req.body.refresh_token };
-				nosql.insert({ access_token: access_token, client_id: clientId });
-				consolle.log('Issuing access token %s for refresh token %s', access_token, req.body.refresh_token);
-        consolle.log('Token response is ' + JSON.stringify(token_response));
-				res.status(200).json(token_response);
-				return;
-			} else {
-				consolle.log('No matching token was found.');
-				res.status(401).end();
-			}
-		});
+  
+    var chance = Math.random();
+    consolle.log('attempt with refresh token; chance=' + chance);     
+    if (chance < 0.5) {
+      consolle.log('Tough luck, buddy...');
+      res.status(401).end();      
+    } else {
+      nosql.all(function(token) {
+        return (token.refresh_token == req.body.refresh_token);
+      }, function(err, tokens) {
+        if (tokens.length == 1) {
+          var token = tokens[0];
+          if (token.client_id != clientId) {
+            consolle.log('Invalid client using a refresh token, expected %s got %s', token.client_id, clientId);
+            nosql.remove(function(found) { return (found == token); }, function () {} );
+            res.status(400).end();
+            return
+          }
+          consolle.log("We found a matching token: %s", req.body.refresh_token);
+          var access_token = randomstring.generate();
+          var token_response = { access_token: access_token, token_type: 'Bearer',  refresh_token: req.body.refresh_token };
+          nosql.insert({ access_token: access_token, client_id: clientId });
+          consolle.log('Issuing access token %s for refresh token %s', access_token, req.body.refresh_token);
+          consolle.log('Token response is ' + JSON.stringify(token_response));
+          res.status(200).json(token_response);
+          return;
+        } else {
+          consolle.log('No matching refresh token was found.');
+          res.status(401).end();
+        }
+      });
+    }
 	} else {
 		consolle.log('Unknown grant type %s', req.body.grant_type);
 		res.status(400).json({error: 'unsupported_grant_type'});
