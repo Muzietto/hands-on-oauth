@@ -2,13 +2,13 @@ var consolle = {
   log: function(msg) { console.log('CLIENT -> ' + msg); }
 };
  
-var express = require("express");
-var request = require("sync-request");
-var url = require("url");
-var qs = require("qs");
+var express = require('express');
+var request = require('sync-request');
+var url = require('url');
+var qs = require('qs');
 var querystring = require('querystring');
 var cons = require('consolidate');
-var randomstring = require("randomstring");
+var randomstring = require('randomstring');
 
 var app = express();
 
@@ -35,7 +35,6 @@ var client = {
 var protectedResource = 'http://localhost:9002/resource';
 
 var state = null;
-
 var access_token = null;
 var scope = null;
 
@@ -103,7 +102,7 @@ app.get('/callback', function(req, res){
 
   var body = JSON.parse(tokenResponse.getBody());
 
-  var access_token = body.access_token;
+  access_token = body.access_token;
 
   res.render('index', {
     access_token: body.access_token,

@@ -2,10 +2,10 @@ var consolle = {
   log: function(msg) { console.log('SERVER -> ' + msg); }
 };
  
-var express = require("express");
-var url = require("url");
+var express = require('express');
+var url = require('url');
 var bodyParser = require('body-parser');
-var randomstring = require("randomstring");
+var randomstring = require('randomstring');
 var cons = require('consolidate');
 var nosql = require('nosql').load('database.nosql');
 var querystring = require('querystring');
@@ -31,10 +31,10 @@ var authServer = {
 // client information
 var clients = [
 	{
-		"client_id": "oauth-client-1",
-		"client_secret": "oauth-client-secret-1",
-		"redirect_uris": ["http://localhost:9000/callback"],
-		"scope": "foo bar"
+		'client_id': 'oauth-client-1',
+		'client_secret': 'oauth-client-secret-1',
+		'redirect_uris': ['http://localhost:9000/callback'],
+		'scope': 'foo bar'
 	}
 ];
 
@@ -50,7 +50,7 @@ app.get('/', function(req, res) {
 	res.render('index', {clients: clients, authServer: authServer});
 });
 
-app.get("/authorize", function(req, res){
+app.get('/authorize', function(req, res){
 	
 	var client = getClient(req.query.client_id);
 	
@@ -150,7 +150,7 @@ app.post('/approve', function(req, res) {
 	
 });
 
-app.post("/token", function(req, res){
+app.post('/token', function(req, res){
 
   consolle.log('headers=' + JSON.stringify(req.headers));	
 	var auth = req.headers['authorization'];

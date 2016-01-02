@@ -2,7 +2,7 @@ var consolle = {
   log: function(msg) { console.log('RESOURCE -> ' + msg); }
 };
  
-var express = require("express");
+var express = require('express');
 var bodyParser = require('body-parser');
 var cons = require('consolidate');
 var nosql = require('nosql').load('database.nosql');
@@ -21,8 +21,8 @@ app.use('/', express.static('files/protectedResource'));
 app.use(cors());
 
 var resource = {
-	"name": "Protected Resource",
-	"description": "This data has been protected by OAuth 2.0"
+	'name': 'Protected Resource',
+	'description': 'This data has been protected by OAuth 2.0'
 };
 
 var getAccessToken = function(req, res, next) {
@@ -45,7 +45,7 @@ var getAccessToken = function(req, res, next) {
 		}
 	}, function(err, token) {
 		if (token) {
-			consolle.log("We found a matching token: %s", inToken);
+			consolle.log('We found a matching token: %s', inToken);
 		} else {
 			consolle.log('No matching token was found.');
 		}
@@ -56,7 +56,7 @@ var getAccessToken = function(req, res, next) {
 };
 
 app.options('/resource', cors());
-app.post("/resource", cors(), getAccessToken, function(req, res){
+app.post('/resource', cors(), getAccessToken, function(req, res){
 
 	if (req.access_token) {
 		res.json(resource);
