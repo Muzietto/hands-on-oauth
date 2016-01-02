@@ -1,7 +1,4 @@
-var consolle = {
-  log: function(msg) { console.log('SERVER -> ' + msg); }
-};
- 
+var consolle = logger('SERVER'); 
 var express = require("express");
 var url = require("url");
 var bodyParser = require('body-parser');
@@ -263,6 +260,17 @@ var server = app.listen(9001, 'localhost', function () {
   var host = server.address().address;
   var port = server.address().port;
 
-  console.log('OAuth Authorization Server is listening at http://%s:%s', host, port);
+  consolle.log('OAuth Authorization Server is listening at http://%s:%s', host, port);
 });
  
+
+function logger(nodeName) {
+  return {
+    log: function(msg, p1, p2) {
+      var prefix = nodeName + ' -> ';
+      if (!p1) console.log(prefix + msg);
+      else if (!p2) console.log(prefix + msg, p1);
+      else console.log(prefix + msg, p1, p2);
+    }
+  }
+};

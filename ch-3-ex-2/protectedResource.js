@@ -1,7 +1,5 @@
-var consolle = {
-  log: function(msg) { console.log('RESOURCE -> ' + msg); }
-};
- 
+var consolle = logger('RESOURCE'); 
+
 var express = require("express");
 var bodyParser = require('body-parser');
 var cons = require('consolidate');
@@ -70,6 +68,17 @@ var server = app.listen(9002, 'localhost', function () {
   var host = server.address().address;
   var port = server.address().port;
 
-  console.log('OAuth Resource Server is listening at http://%s:%s', host, port);
+  consolle.log('OAuth Resource Server is listening at http://%s:%s', host, port);
 });
  
+
+function logger(nodeName) {
+  return {
+    log: function(msg, p1, p2) {
+      var prefix = nodeName + ' -> ';
+      if (!p1) console.log(prefix + msg);
+      else if (!p2) console.log(prefix + msg, p1);
+      else console.log(prefix + msg, p1, p2);
+    }
+  }
+};
