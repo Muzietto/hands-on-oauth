@@ -53,26 +53,31 @@ var getAccessToken = function(req, res, next) {
     } else {
       consolle.log('No matching token was found');
     }
-  });
-  req.access_token = token;
+    req.access_token = token;
 
-  next();
-  return;
+    next();
+    return;
+  });
 };
 
 app.options('/resource', cors());
 /*
  * Add the getAccessToken function to this handler
  */
-app.post('/resource', cors(), function(req, res){
+app.post('/resource', cors(), getAccessToken, function(req, res){
 
 	/*
 	 * Check to see if the access token was found or not
 	 */
+  // stuck directly in the req by the helper method getAccessToken
+  if (req.access_token) {
+    // WRAP THIS LINE IN A CONDITIONAL STATEMENT
+    res.json(resource);
+    // WRAP THIS LINE IN A CONDITIONAL STATEMENT    
+  } else {
+    res.status(401).end();    
+  }
 	
-	// WRAP THIS LINE IN A CONDITIONAL STATEMENT
-	res.json(resource);
-	// WRAP THIS LINE IN A CONDITIONAL STATEMENT
 });
 
 var server = app.listen(9002, 'localhost', function () {
