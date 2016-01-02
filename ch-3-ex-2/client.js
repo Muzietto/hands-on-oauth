@@ -32,7 +32,6 @@ var client = {
 var protectedResource = 'http://localhost:9002/resource';
 
 var state = null;
-
 var access_token = '987tghjkiu6trfghjuytrghj';
 var scope = null;
 var refresh_token = '98uhjrk2o3ij2r3oj32r23rmasd';
@@ -96,6 +95,7 @@ app.get('/callback', function(req, res){
 	consolle.log('Requesting access token for code %s',code);
 	
 	if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
+    consolle.log('Token request returned ' + tokRes.getBody());
 		var body = JSON.parse(tokRes.getBody());
 	
 		access_token = body.access_token;
@@ -124,12 +124,12 @@ app.get('/fetch_resource', function(req, res) {
 	};
 	
 	var resource = request('POST', protectedResource,
-		{headers: headers}
+		{ headers: headers }
 	);
 	
 	if (resource.statusCode >= 200 && resource.statusCode < 300) {
 		var body = JSON.parse(resource.getBody());
-		res.render('data', {resource: body});
+		res.render('data', { resource: body });
 		return;
 	} else {
 		access_token = null;
@@ -137,12 +137,15 @@ app.get('/fetch_resource', function(req, res) {
 		/*
 		 * Instead of returning an error, refresh the access token if we have a refresh token
 		 */
-
-		res.render('error', {error: resource.statusCode});
-		return;
+    if (refresh_token) {
+      consolle.log('Going to refresh the token at the server');
+      refreshAccessToken(req, res);
+      return;
+    } else {
+  		res.render('error', { error: resource.statusCode });
+	  	return;
+    }
 	}
-	
-	
 });
 
 var refreshAccessToken = function(req, res) {
@@ -150,11 +153,38 @@ var refreshAccessToken = function(req, res) {
 	/*
 	 * Use the refresh token to get a new access token
 	 */
-	
-	// REMOVE THIS LINE
-	res.render('error', {error: 'Not implemented'});
-	// REMOVE THIS LINE
-
+  var form_data = qs.stringify({
+    grant_type: 'refresh_token',
+    refresh_token: refresh_token,
+    client_id: client.client_id,
+    client_secret: client.client_secret,
+    redirect_uri: client.redirect_uris[0]
+  });
+	var headers = {
+		'Content-Type': 'application/x-www-form-urlencoded'
+	};
+  var tokRes = request('POST', authServer.tokenEndpoint, {
+    body: form_data,
+    headers: headers
+  });
+  
+  consolle.log('Refresh attempt returned ' + tokRes.getBody());
+  if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
+    var body = JSON.parse(tokRes.getBody());
+    access_token = body.access_token;
+    
+    if (body.refresh_token) {
+      refresh_token = body.refresh_token;
+    }
+    
+    scope = body.scope;
+     
+    res.redirect('/fetch_resource');
+  } else {
+    refresh_token = null;
+    res.render('error', { error: 'Unable to refresh token' });
+    return;  
+  }
 };
 
 app.use('/', express.static('files/client'));

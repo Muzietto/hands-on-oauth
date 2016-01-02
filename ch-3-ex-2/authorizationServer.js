@@ -53,7 +53,7 @@ app.get("/authorize", function(req, res){
 	
 	if (!client) {
 		consolle.log('Unknown client %s', req.query.client_id);
-		res.render('error', {error: 'Unknown client'});
+		res.render('error', { error: 'Unknown client' });
 		return;
 	} else if (!__.contains(client.redirect_uris, req.query.redirect_uri)) {
 		consolle.log('Mismatched redirect URI, expected %s got %s', client.redirect_uris, req.query.redirect_uri);
@@ -77,7 +77,7 @@ app.get("/authorize", function(req, res){
 		
 		requests[reqid] = req.query;
 		
-		res.render('approve', {client: client, reqid: reqid, scope: rscope});
+		res.render('approve', { client: client, reqid: reqid, scope: rscope });
 		return;
 	}
 
@@ -119,7 +119,7 @@ app.post('/approve', function(req, res) {
 			// save the code and request for later
 			codes[code] = { authorizationEndpointRequest: query, scope: scope, user: user };
 		
-			var urlParsed =url.parse(query.redirect_uri);
+			var urlParsed = url.parse(query.redirect_uri);
 			delete urlParsed.search; // this is a weird behavior of the URL library
 			urlParsed.query = urlParsed.query || {};
 			urlParsed.query.code = code;
@@ -148,11 +148,14 @@ app.post('/approve', function(req, res) {
 });
 
 app.post("/token", function(req, res){
-	
+
+  consolle.log('headers=' + JSON.stringify(req.headers));	
 	var auth = req.headers['authorization'];
 	if (auth) {
+    consolle.log('checking auth header');
 		// check the auth header
 		var clientCredentials = new Buffer(auth.slice('basic '.length), 'base64').toString().split(':');
+    consolle.log(clientCredentials);
 		var clientId = querystring.unescape(clientCredentials[0]);
 		var clientSecret = querystring.unescape(clientCredentials[1]);
 	}
@@ -162,7 +165,7 @@ app.post("/token", function(req, res){
 		if (clientId) {
 			// if we've already seen the client's credentials in the authorization header, this is an error
 			consolle.log('Client attempted to authenticate with multiple methods');
-			res.status(401).json({error: 'invalid_client'});
+			res.status(401).json({ error: 'invalid_client' });
 			return;
 		}
 		
@@ -173,7 +176,7 @@ app.post("/token", function(req, res){
 	var client = getClient(clientId);
 	if (!client) {
 		consolle.log('Unknown client %s', clientId);
-		res.status(401).json({error: 'invalid_client'});
+		res.status(401).json({ error: 'invalid_client' });
 		return;
 	}
 	
@@ -219,7 +222,7 @@ app.post("/token", function(req, res){
 			res.status(400).json({error: 'invalid_grant'});
 			return;
 		}
-	} else if (req.body.grant_type == 'refresh_token') {
+	} else if (req.body.grant_type == 'refresh_token') { // PECULIAR PART!!!
 		nosql.all(function(token) {
 			return (token.refresh_token == req.body.refresh_token);
 		}, function(err, tokens) {
@@ -236,6 +239,7 @@ app.post("/token", function(req, res){
 				var token_response = { access_token: access_token, token_type: 'Bearer',  refresh_token: req.body.refresh_token };
 				nosql.insert({ access_token: access_token, client_id: clientId });
 				consolle.log('Issuing access token %s for refresh token %s', access_token, req.body.refresh_token);
+        consolle.log('Token response is ' + JSON.stringify(token_response));
 				res.status(200).json(token_response);
 				return;
 			} else {

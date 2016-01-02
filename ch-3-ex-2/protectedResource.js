@@ -56,9 +56,14 @@ var getAccessToken = function(req, res, next) {
 app.options('/resource', cors());
 app.post("/resource", cors(), getAccessToken, function(req, res){
 
-	if (req.access_token) {
+  var chance = Math.random();
+  consolle.log('chance=' + chance);
+  
+	if (req.access_token && chance > 0.5) {
+    consolle.log('Resource is available:' + JSON.stringify(resource));
 		res.json(resource);
 	} else {
+    consolle.log('Resource is DENIED');
 		res.status(401).end();
 	}
 	
