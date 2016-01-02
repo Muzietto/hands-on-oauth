@@ -111,13 +111,19 @@ app.get('/callback', function(req, res){
 });
 
 app.get('/fetch_resource', function(req, res) {
-
+  
+  consolle.log('Requesting resource; token=' + access_token);
 	/*
 	 * Use the access token to call the resource server
 	 */
   if (!access_token) {
 	  res.render('error', { error: 'Missing access token' });
   }
+  
+  var resource = request('POST', protectedResource, {
+    headers: { Authorization: 'bearer ' + access_token } 
+  });
+  
   
   
 });
