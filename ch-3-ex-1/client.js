@@ -67,7 +67,7 @@ app.get('/callback', function(req, res){
   consolle.log('state=' + state);
   consolle.log('req.query.state=' + req.query.state);
   
-  if (req.query.state !== state+'qwe') {
+  if (req.query.state !== state) {
     var errMsg = 'State value didn\'t match!!!';
     res.render('error', { error: errMsg });
     consolle.log(errMsg);
