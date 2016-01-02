@@ -77,7 +77,7 @@ app.get('/authorize', function(req, res){
 		
 		requests[reqid] = req.query;
 		
-		res.render('approve', {client: client, reqid: reqid, scope: rscope});
+		res.render('approve', { client: client, reqid: reqid, scope: rscope });
 		return;
 	}
 
@@ -119,7 +119,7 @@ app.post('/approve', function(req, res) {
 			// save the code and request for later
 			codes[code] = { authorizationEndpointRequest: query, scope: scope, user: user };
 		
-			var urlParsed =url.parse(query.redirect_uri);
+			var urlParsed = url.parse(query.redirect_uri);
 			delete urlParsed.search; // this is a weird behavior of the URL library
 			urlParsed.query = urlParsed.query || {};
 			urlParsed.query.code = code;
@@ -166,7 +166,7 @@ app.post('/token', function(req, res){
 		if (clientId) {
 			// if we've already seen the client's credentials in the authorization header, this is an error
 			consolle.log('Client attempted to authenticate with multiple methods');
-			res.status(401).json({error: 'invalid_client'});
+			res.status(401).json({ error: 'invalid_client' });
 			return;
 		}
 		
@@ -177,7 +177,7 @@ app.post('/token', function(req, res){
 	var client = getClient(clientId);
 	if (!client) {
 		consolle.log('--> Unknown client %s', clientId);
-		res.status(401).json({error: 'invalid_client'});
+		res.status(401).json({ error: 'invalid_client' });
 		return;
 	}
 	

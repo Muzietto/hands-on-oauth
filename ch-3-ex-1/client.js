@@ -99,8 +99,10 @@ app.get('/callback', function(req, res){
     body: form_data,
     headers: headers
   });
+  consolle.log('Token request returned ' + tokenResponse.getBody());
 
   var body = JSON.parse(tokenResponse.getBody());
+  consolle.log('as=' + authorizationString);
 
   access_token = body.access_token;
 
