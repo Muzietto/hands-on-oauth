@@ -1,3 +1,7 @@
+var consolle = {
+  log: function(msg) { console.log('RESOURCE -> ' + msg); }
+};
+ 
 var express = require("express");
 var bodyParser = require('body-parser');
 var cons = require('consolidate');
@@ -34,16 +38,16 @@ var getAccessToken = function(req, res, next) {
 		inToken = req.query.access_token
 	}
 	
-	console.log('Incoming token: %s', inToken);
+	consolle.log('Incoming token: %s', inToken);
 	nosql.one(function(token) {
 		if (token.access_token == inToken) {
 			return token;	
 		}
 	}, function(err, token) {
 		if (token) {
-			console.log("We found a matching token: %s", inToken);
+			consolle.log("We found a matching token: %s", inToken);
 		} else {
-			console.log('No matching token was found.');
+			consolle.log('No matching token was found.');
 		}
 		req.access_token = token;
 		next();
@@ -66,6 +70,6 @@ var server = app.listen(9002, 'localhost', function () {
   var host = server.address().address;
   var port = server.address().port;
 
-  console.log('OAuth Resource Server is listening at http://%s:%s', host, port);
+  consolle.log('OAuth Resource Server is listening at http://%s:%s', host, port);
 });
  

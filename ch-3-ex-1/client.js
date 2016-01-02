@@ -1,3 +1,7 @@
+var consolle = {
+  log: function(msg) { console.log('CLIENT -> ' + msg); }
+};
+ 
 var express = require("express");
 var request = require("sync-request");
 var url = require("url");
@@ -60,11 +64,14 @@ app.get('/authorize', function(req, res){
 
 app.get('/callback', function(req, res){
 
-  console.log('state=' + state);
-  console.log('req.query.state=' + req.query.state);
+  consolle.log('state=' + state);
+  consolle.log('req.query.state=' + req.query.state);
   
-  if (req.query.state !== state) {
-    res.render('error', { error: 'State value didn\'t match!!!' });
+  if (req.query.state !== state+'qwe') {
+    var errMsg = 'State value didn\'t match!!!';
+    res.render('error', { error: errMsg });
+    consolle.log(errMsg);
+    return;
   }
 
 	/*
@@ -82,7 +89,7 @@ app.get('/callback', function(req, res){
     + ':'
     + querystring.escape(client.client_secret);
 
-  console.log('as=' + authorizationString);
+  consolle.log('as=' + authorizationString);
   
   var headers = {
     'content-type': 'application/x-www-form-urlencoded',
@@ -121,6 +128,6 @@ app.use('/', express.static('files/client'));
 var server = app.listen(9000, 'localhost', function () {
   var host = server.address().address;
   var port = server.address().port;
-  console.log('OAuth Client is listening at http://%s:%s', host, port);
+  consolle.log('OAuth Client is listening at http://%s:%s', host, port);
 });
  

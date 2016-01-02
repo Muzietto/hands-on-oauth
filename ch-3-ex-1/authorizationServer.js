@@ -1,3 +1,7 @@
+var consolle = {
+  log: function(msg) { console.log('SERVER -> ' + msg); }
+};
+ 
 var express = require("express");
 var url = require("url");
 var bodyParser = require('body-parser');
@@ -51,11 +55,11 @@ app.get("/authorize", function(req, res){
 	var client = getClient(req.query.client_id);
 	
 	if (!client) {
-		console.log('Unknown client %s', req.query.client_id);
-		res.render('error', {error: 'Unknown client'});
+		consolle.log('Unknown xxx client %s', req.query.client_id);
+		res.render('error', {error: 'Completely Unknown client'});
 		return;
 	} else if (!__.contains(client.redirect_uris, req.query.redirect_uri)) {
-		console.log('Mismatched redirect URI, expected %s got %s', client.redirect_uris, req.query.redirect_uri);
+		consolle.log('Mismatched redirect URI, expected %s got %s', client.redirect_uris, req.query.redirect_uri);
 		res.render('error', {error: 'Invalid redirect URI'});
 		return;
 	} else {
@@ -148,14 +152,14 @@ app.post('/approve', function(req, res) {
 
 app.post("/token", function(req, res){
 
-  console.log('headers=' + JSON.stringify(req.headers));	
+  consolle.log('headers=' + JSON.stringify(req.headers));	
 	var auth = req.headers['authorization'];
   
 	if (auth) {
-    console.log('checking auth header');
+    consolle.log('checking auth header');
 		// check the auth header
 		var clientCredentials = new Buffer(auth.slice('basic '.length), 'base64').toString().split(':');
-    console.log(clientCredentials);
+    consolle.log(clientCredentials);
 		var clientId = querystring.unescape(clientCredentials[0]);
 		var clientSecret = querystring.unescape(clientCredentials[1]);
 	}
@@ -164,7 +168,7 @@ app.post("/token", function(req, res){
 	if (req.body.client_id) {
 		if (clientId) {
 			// if we've already seen the client's credentials in the authorization header, this is an error
-			console.log('Client attempted to authenticate with multiple methods');
+			consolle.log('Client attempted to authenticate with multiple methods');
 			res.status(401).json({error: 'invalid_client'});
 			return;
 		}
@@ -175,13 +179,13 @@ app.post("/token", function(req, res){
 	
 	var client = getClient(clientId);
 	if (!client) {
-		console.log('--> Unknown client %s', clientId);
+		consolle.log('--> Unknown client %s', clientId);
 		res.status(401).json({error: 'invalid_client'});
 		return;
 	}
 	
 	if (client.client_secret != clientSecret) {
-		console.log('Mismatched client secret, expected %s got %s', client.client_secret, clientSecret);
+		consolle.log('Mismatched client secret, expected %s got %s', client.client_secret, clientSecret);
 		res.status(401).json({error: 'invalid_client'});
 		return;
 	}
@@ -203,27 +207,27 @@ app.post("/token", function(req, res){
 
 				nosql.insert({ access_token: access_token, client_id: clientId, scope: cscope });
 
-				console.log('Issuing access token %s', access_token);
-				console.log('with scope %s', cscope);
+				consolle.log('Issuing access token %s', access_token);
+				consolle.log('with scope %s', cscope);
 
 				var token_response = { access_token: access_token, token_type: 'Bearer',  scope: cscope };
 
 				res.status(200).json(token_response);
-				console.log('Issued tokens for code %s', req.body.code);
+				consolle.log('Issued tokens for code %s', req.body.code);
 				
 				return;
 			} else {
-				console.log('Client mismatch, expected %s got %s', code.authorizationEndpointRequest.client_id, clientId);
+				consolle.log('Client mismatch, expected %s got %s', code.authorizationEndpointRequest.client_id, clientId);
 				res.status(400).json({error: 'invalid_grant'});
 				return;
 			}
 		} else {
-			console.log('Unknown code, %s', req.body.code);
+			consolle.log('Unknown code, %s', req.body.code);
 			res.status(400).json({error: 'invalid_grant'});
 			return;
 		}
 	} else {
-		console.log('Unknown grant type %s', req.body.grant_type);
+		consolle.log('Unknown grant type %s', req.body.grant_type);
 		res.status(400).json({error: 'unsupported_grant_type'});
 	}
 });
@@ -237,6 +241,5 @@ var server = app.listen(9001, 'localhost', function () {
   var host = server.address().address;
   var port = server.address().port;
 
-  console.log('OAuth Authorization Server is listening at http://%s:%s', host, port);
+  consolle.log('OAuth Authorization Server is listening at http://%s:%s', host, port);
 });
- 
