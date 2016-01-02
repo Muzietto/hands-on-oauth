@@ -130,10 +130,7 @@ app.get('/fetch_resource', function(req, res) {
     var body = JSON.parse(resource.getBody());
     res.render('data', { resource: body });
   } else {
-    res.render('error', { error: 'Protected resource returned HTTP status code ' + resource.statusCode + '. Going to retry in 5 seconds...'});
-    setTimeout(function() {
-      res.redirect('/authorize');
-    }, 5000);
+    res.render('error', { error: 'Protected resource returned HTTP status code ' + resource.statusCode });
   }
 });
 
