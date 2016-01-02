@@ -71,7 +71,6 @@ var server = app.listen(9002, 'localhost', function () {
   consolle.log('OAuth Resource Server is listening at http://%s:%s', host, port);
 });
  
-
 function logger(nodeName) {
   return {
     log: function(msg, p1, p2) {
