@@ -1,7 +1,4 @@
-var consolle = {
-  log: function(msg) { console.log('CLIENT -> ' + msg); }
-};
- 
+var consolle = logger('SERVER'); 
 var express = require('express');
 var request = require('sync-request');
 var url = require('url');
@@ -47,6 +44,7 @@ var state;
 app.get('/authorize', function(req, res){
 
   state = randomstring.generate();
+  consolle.log('Going to seek authorization; state=' + state);
 
 	/*
 	 * Send the user to the authorization server
@@ -58,7 +56,9 @@ app.get('/authorize', function(req, res){
   authorizeUrl.query.redirect_uri = client.redirect_uris[0];
   authorizeUrl.query.state = state;
 	
-  res.redirect(url.format(authorizeUrl));
+  var urlString = url.format(authorizeUrl);
+  consolle.log('redirecting; url=' + urlString);
+  res.redirect(urlString);
 });
 
 app.get('/callback', function(req, res){
@@ -130,7 +130,10 @@ app.get('/fetch_resource', function(req, res) {
     var body = JSON.parse(resource.getBody());
     res.render('data', { resource: body });
   } else {
-    res.render('error', { error: 'Protected resource returned HTTP status code ' + resource.statusCode });
+    res.render('error', { error: 'Protected resource returned HTTP status code ' + resource.statusCode + '. Going to retry in 5 seconds...'});
+    setTimeout(function() {
+      res.redirect('/authorize');
+    }, 5000);
   }
 });
 
@@ -141,4 +144,14 @@ var server = app.listen(9000, 'localhost', function () {
   var port = server.address().port;
   consolle.log('OAuth Client is listening at http://%s:%s', host, port);
 });
- 
+
+function logger(nodeName) {
+  return {
+    log: function(msg, p1, p2) {
+      var prefix = nodeName + ' -> ';
+      if (!p1) console.log(prefix + msg);
+      else if (!p2) console.log(prefix + msg, p1);
+      else console.log(prefix + msg, p1, p2);
+    }
+  }
+};
