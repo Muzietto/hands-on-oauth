@@ -112,7 +112,6 @@ app.get('/callback', function(req, res){
 
 app.get('/fetch_resource', function(req, res) {
   
-  consolle.log('Requesting resource; token=' + access_token);
 	/*
 	 * Use the access token to call the resource server
 	 */
@@ -120,12 +119,19 @@ app.get('/fetch_resource', function(req, res) {
 	  res.render('error', { error: 'Missing access token' });
   }
   
+  var startTime = new Date().getTime();
+  consolle.log('Requesting resource; token=' + access_token);
   var resource = request('POST', protectedResource, {
-    headers: { Authorization: 'bearer ' + access_token } 
+    headers: { 'authorization': 'Bearer ' + access_token } 
   });
+  consolle.log('Response arrived after millis=' + (new Date().getTime() - startTime));
   
-  
-  
+  if (resource.statusCode >= 200 && resource.statusCode < 300) {
+    var body = JSON.parse(resource.getBody());
+    res.render('data', { resource: body });
+  } else {
+    res.render('error', { error: 'Protected resource returned HTTP status code ' + resource.statusCode });
+  }
 });
 
 app.use('/', express.static('files/client'));

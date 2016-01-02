@@ -26,26 +26,31 @@ var resource = {
 };
 
 var getAccessToken = function(req, res, next) {
+  consolle.log('received request from client');
 	// check the auth header first
 	var auth = req.headers['authorization'];
+  consolle.log('Headers say ' + JSON.stringify(req.headers));
 	var inToken = null;
-	if (auth && auth.toLowerCase().indexOf('bearer') == 0) {
+	if (auth && auth.toLowerCase().indexOf('bearer') === 0) {
 		inToken = auth.slice('bearer '.length);
+    consolle.log('Bearer token in authorization header');
 	} else if (req.body && req.body.access_token) {
 		// not in the header, check in the form body
 		inToken = req.body.access_token;
+    consolle.log('Token in request body');
 	} else if (req.query && req.query.access_token) {
 		inToken = req.query.access_token
+    consolle.log('Token in QS');
 	}
-	
-	consolle.log('Incoming token: %s', inToken);
+	consolle.log('Incoming token: ' + inToken);
+  
 	nosql.one(function(token) {
 		if (token.access_token == inToken) {
 			return token;	
 		}
 	}, function(err, token) {
 		if (token) {
-			consolle.log('We found a matching token: %s', inToken);
+			consolle.log('We found a matching token: ' + inToken);
 		} else {
 			consolle.log('No matching token was found.');
 		}
@@ -56,6 +61,7 @@ var getAccessToken = function(req, res, next) {
 };
 
 app.options('/resource', cors());
+
 app.post('/resource', cors(), getAccessToken, function(req, res){
 
 	if (req.access_token) {
