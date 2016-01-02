@@ -1,3 +1,7 @@
+var consolle = {
+  log: function(msg) { console.log('CLIENT -> ' + msg); }
+};
+ 
 var express = require("express");
 var request = require("sync-request");
 var url = require("url");
@@ -54,7 +58,7 @@ app.get('/authorize', function(req, res){
 	authorizeUrl.query.redirect_uri = client.redirect_uris[0];
 	authorizeUrl.query.state = state;
 	
-	console.log("redirect", url.format(authorizeUrl));
+	consolle.log("redirect", url.format(authorizeUrl));
 	res.redirect(url.format(authorizeUrl));
 });
 
@@ -68,7 +72,7 @@ app.get('/callback', function(req, res){
 	
 	var resState = req.query.state;
 	if (resState != state) {
-		console.log('State DOES NOT MATCH: expected %s got %s', state, resState);
+		consolle.log('State DOES NOT MATCH: expected %s got %s', state, resState);
 		res.render('error', {error: 'State value did not match'});
 		return;
 	}
@@ -92,20 +96,20 @@ app.get('/callback', function(req, res){
 		}
 	);
 
-	console.log('Requesting access token for code %s',code);
+	consolle.log('Requesting access token for code %s',code);
 	
 	if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
 		var body = JSON.parse(tokRes.getBody());
 	
 		access_token = body.access_token;
-		console.log('Got access token: %s', access_token);
+		consolle.log('Got access token: %s', access_token);
 		if (body.refresh_token) {
 			refresh_token = body.refresh_token;
-			console.log('Got refresh token: %s', refresh_token);
+			consolle.log('Got refresh token: %s', refresh_token);
 		}
 		
 		scope = body.scope;
-		console.log('Got scope: %s', scope);
+		consolle.log('Got scope: %s', scope);
 
 		res.render('index', {access_token: access_token, scope: scope, refresh_token: refresh_token});
 	} else {
@@ -115,7 +119,7 @@ app.get('/callback', function(req, res){
 
 app.get('/fetch_resource', function(req, res) {
 
-	console.log('Making request with access token %s', access_token);
+	consolle.log('Making request with access token %s', access_token);
 	
 	var headers = {
 		'Authorization': 'Bearer ' + access_token,
