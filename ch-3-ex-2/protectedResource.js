@@ -58,6 +58,7 @@ app.post("/resource", cors(), getAccessToken, function(req, res){
   var chance = Math.random();
   consolle.log('chance=' + chance);
   
+  // stuck directly in the req by the helper method getAccessToken
 	if (req.access_token && chance > 0.5) {
     consolle.log('Resource is available:' + JSON.stringify(resource));
 		res.json(resource);
