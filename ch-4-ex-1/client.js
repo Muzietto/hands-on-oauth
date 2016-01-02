@@ -105,6 +105,7 @@ app.get('/callback', function(req, res){
 	consolle.log('Requesting access token for code %s',code);
 	
 	if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
+    consolle.log('Token request returned ' + tokRes.getBody());
 		var body = JSON.parse(tokRes.getBody());
 	
 		access_token = body.access_token;
@@ -150,8 +151,6 @@ app.get('/fetch_resource', function(req, res) {
 		res.render('error', {error: 'Server returned response code: ' + resource.statusCode});
 		return;
 	}
-	
-	
 });
 
 app.use('/', express.static('files/client'));
