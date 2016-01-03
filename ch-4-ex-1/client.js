@@ -62,7 +62,7 @@ app.get('/authorize', function(req, res){
 	authorizeUrl.query.redirect_uri = client.redirect_uris[0];
 	authorizeUrl.query.state = state;
 	
-	consolle.log('redirect', url.format(authorizeUrl));
+	consolle.log('redirecting to ', url.format(authorizeUrl));
 	res.redirect(url.format(authorizeUrl));
 });
 
@@ -84,6 +84,7 @@ app.get('/callback', function(req, res){
 	}
 
 	var code = req.query.code;
+	consolle.log('Requesting access token for code %s', code);
 
 	var form_data = qs.stringify({
 				grant_type: 'authorization_code',
@@ -95,14 +96,15 @@ app.get('/callback', function(req, res){
 		'Authorization': 'Basic ' + new Buffer(querystring.escape(client.client_id) + ':' + querystring.escape(client.client_secret)).toString('base64')
 	};
 
+  var startTime = new Date().getTime();
+  // friggin' blocking call
 	var tokRes = request('POST', authServer.tokenEndpoint, 
 		{	
 			body: form_data,
 			headers: headers
 		}
 	);
-
-	consolle.log('Requesting access token for code %s',code);
+  consolle.log('AAA - Whole user interaction process took millis=' + (new Date().getTime() - startTime));  
 	
 	if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
     consolle.log('Token request returned ' + tokRes.getBody());
@@ -131,16 +133,15 @@ app.get('/fetch_resource', function(req, res) {
 		return;
 	}
 	
-	consolle.log('Making request with access token %s', access_token);
-	
-	var headers = {
-		'Authorization': 'Bearer ' + access_token,
-		'Content-Type': 'application/x-www-form-urlencoded'
-	};
-	
+  var startTime = new Date().getTime();
+  consolle.log('Requesting resource; token=' + access_token);
 	var resource = request('POST', protectedResource,
-		{headers: headers}
-	);
+		{ headers: {
+		            'Authorization': 'Bearer ' + access_token,
+		            'Content-Type': 'application/x-www-form-urlencoded'
+	            }
+    });
+  consolle.log('Response arrived after millis=' + (new Date().getTime() - startTime));
 	
 	if (resource.statusCode >= 200 && resource.statusCode < 300) {
 		var body = JSON.parse(resource.getBody());
