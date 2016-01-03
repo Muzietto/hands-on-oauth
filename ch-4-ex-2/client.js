@@ -145,7 +145,7 @@ app.get('/get_words', function (req, res) {
 	if (resource.statusCode >= 200 && resource.statusCode < 300) {
     consolle.log('Response OK - body is ' + resource.getBody());
 		var body = JSON.parse(resource.getBody());
-		res.render('words', { words: body.words, timestamp: body.timestamp, result: 'get', code: decode(resource.statusCode)  }); 
+		res.render('words', { words: body.words, timestamp: body.timestamp, result: 'get', code: decode(resource.statusCode) }); 
 		return;
 	} else {
     consolle.log('Response KO - response code is: ' + decode(resource.statusCode));
@@ -168,14 +168,14 @@ app.get('/add_word', function (req, res) {
 	);
 	
 	if (resource.statusCode >= 200 && resource.statusCode < 300) {
-		res.render('words', { words: '', timestamp: 0, result: 'add' });
+    consolle.log('Response OK - body is ' + resource.getBody());
+		res.render('words', { words: '', timestamp: 0, result: 'add', code: decode(resource.statusCode) });
 		return;
 	} else {
-		res.render('words', { words: '', timestamp: 0, result: 'noadd' });
+    consolle.log('Response KO - response code is: ' + decode(resource.statusCode));
+		res.render('words', { words: '', timestamp: 0, result: 'noadd', code: decode(resource.statusCode) });
 		return;
-	}
-	
-
+	} 
 });
 
 app.get('/delete_word', function (req, res) {
@@ -190,16 +190,15 @@ app.get('/delete_word', function (req, res) {
 	); 
 	 
 	if (resource.statusCode >= 200 && resource.statusCode < 300) {
-		res.render('words', { words: '', timestamp: 0, result: 'rm', codde: decode(resource.statusCode) });
+    consolle.log('Response OK - body is ' + resource.getBody());
+		res.render('words', { words: '', timestamp: 0, result: 'rm', code: decode(resource.statusCode) });
 		return;
 	} else {
-		res.render('words', { words: '', timestamp: 0, result: 'norm', codde: decode(resource.statusCode) });
+    consolle.log('Response KO - response code is: ' + decode(resource.statusCode));
+		res.render('words', { words: '', timestamp: 0, result: 'norm', code: decode(resource.statusCode) });
 		return;
 	}
-	
-	
 });
-
 
 app.use('/', express.static('files/client'));
 
@@ -211,8 +210,10 @@ var server = app.listen(9000, 'localhost', function () {
 
 function decode(statusCode) {
   return {
-    200: '200 - OK',
+    200: '200 - ok',
     201: '201 - created',
+    202: '202 - accepted',
+    204: '204 - no content',
     401: '401 - unauthorized',
     403: '403 - access denied'
   }[statusCode];

@@ -55,8 +55,12 @@
 		  <div class="col-md-4">
 			  <div class="well">
 				  <h3>Add a word to the list</h3>
-				  <% if (result == 'add') { %><p><span class="label label-success">Success: <% code %></span></p><% } %>
-				  <% if (result == 'noadd') { %><p><span class="label label-danger">Failure: <% code %></span></p><% } %>
+				  <% if (result == 'add') { %>
+          <p><span class="label label-success"><%- 'Success: ' + code %></span></p>
+          <% } %>
+				  <% if (result == 'noadd') { %>
+          <p><span class="label label-danger"><%- 'Failure: ' + code %></span></p>
+          <% } %>
 				  <form class="form" action="/add_word" method="GET">
 					  <input type="text" name="word" placeholder="word">
 					  <input type="submit" class="btn btn-warning" href="/" value="POST a new word" >
@@ -66,8 +70,12 @@
 		  <div class="col-md-4">
 			  <div class="well">
 				  <h3>Remove the last word from the list</h3>
-				  <% if (result == 'rm') { %><p><span class="label label-success">Success: <% code %></span></p><% } %>
-				  <% if (result == 'norm') { %><p><span class="label label-danger">Failure: <% code %></span></p><% } %>
+				  <% if (result == 'rm') { %>
+          <p><span class="label label-success"><%- 'Success: ' + code %></span></p>
+          <% } %>
+				  <% if (result == 'norm') { %>
+          <p><span class="label label-danger"><%- 'Failure: ' + code %></span></p>
+          <% } %>
  			  	  <a class="btn btn-danger" href="/delete_word">DELETE the last word</a> 
 			  </div>
 		  </div>

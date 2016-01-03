@@ -69,30 +69,43 @@ app.get('/words', getAccessToken, requireAccessToken, function LAST(req, res) {
 	/* Make this function require the "read" scope */
   var scopes = req.access_token.scope; // added by getAccessToken
   if (__(scopes).contains('read')) {
-    consolle.log('Token can READ.');
+    consolle.log('Token can READ');
 	  res.json({ words: savedWords.join(' '), timestamp: Date.now() });
   } else {
-    consolle.log('Token canNOT read.');
+    consolle.log('Token canNOT read');
     res.set('WWW-Authenticate', 'Bearer realm=localhost:9002, error="insufficient scope", scope="read"');
     res.status(403).end();  // access denied
   }
 });
 
 app.post('/words', getAccessToken, requireAccessToken, function(req, res) {
-	/*
-	 * Make this function require the "write" scope
-	 */
-	if (req.body.word) {
-		savedWords.push(req.body.word);
-	}
+	/* Make this function require the "write" scope */
+  var scopes = req.access_token.scope; // added by getAccessToken
+  if (__(scopes).contains('write')) {
+    consolle.log('Token can WRITE');
+    if (req.body.word) {
+      savedWords.push(req.body.word);
+    }
+    res.status(201).end();  // created
+  } else {
+    consolle.log('Token canNOT write');
+    res.set('WWW-Authenticate', 'Bearer realm=localhost:9002, error="insufficient scope", scope="write"');
+    res.status(403).end();  // access denied
+  }
 });
 
 app.delete('/words', getAccessToken, requireAccessToken, function(req, res) {
-	/*
-	 * Make this function require the "delete" scope
-	 */
-	savedWords.pop();
-	res.status(201).end();
+	/* Make this function require the "delete" scope */
+  var scopes = req.access_token.scope; // added by getAccessToken
+  if (__(scopes).contains('delete')) {
+    consolle.log('Token can DELETE');
+    savedWords.pop();
+    res.status(204).end(); // no content
+  } else {
+    consolle.log('Token canNOT delete');
+    res.set('WWW-Authenticate', 'Bearer realm=localhost:9002, error="insufficient scope", scope="delete"');
+    res.status(403).end();  // access denied
+  }
 });
 
 var server = app.listen(9002, 'localhost', function () {
