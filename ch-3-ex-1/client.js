@@ -120,7 +120,7 @@ app.get('/fetch_resource', function(req, res) {
   if (!access_token) {
 	  res.render('error', { error: 'Missing access token' });
   }
-  
+
   var startTime = new Date().getTime();
   consolle.log('Requesting resource; token=' + access_token);
   var resource = request('POST', protectedResource, {
