@@ -24,28 +24,6 @@ var resource = {
 	'description': 'This data has been protected by OAuth 2.0'
 };
 
-var authorizeResource = function(req, res) {
-  consolle.log('Going to extract the token');
-	var inToken = tokenFrom(req);
-  consolle.log('...and the token is... ' + inToken);
-  
-  nosql.one(function(token) {
-    if (token.access_token === inToken) {
-      return token;
-    }
-  }, function(err, token) {
-    if (token) {
-      consolle.log('Found matching token %s', inToken);
-      req.access_token = token;
-      res.json(resource);
-    } else {
-      consolle.log('No matching token was found');
-      res.status(401).end();    
-    }
-    return;
-  });
-};
-
 app.options('/resource', cors());
 app.post('/resource', cors(), authorizeResource);
 
@@ -55,6 +33,37 @@ var server = app.listen(9002, 'localhost', function () {
 
   consolle.log('OAuth Resource Server is listening at http://%s:%s', host, port);
 });
+
+function authorizeResource (req, res) {
+  consolle.log('Going to extract the token');
+	var token = tokenFrom(req);
+  consolle.log('...and the token is... ' + token);
+
+  promiseToCheck(token)
+    .then(function(matchingToken) {
+      consolle.log('Found matching token %s', matchingToken);
+      res.json(resource);
+    }, function(errorReason) {
+      consolle.log('Token check failed: ' + errorReason);
+      res.status(401).end();    
+    });
+};
+
+function promiseToCheck(token) {
+  var deferred = Q.defer();
+  nosql.one(function(doc) {
+  if (doc.access_token === token) {
+    return doc;
+  }
+  }, function(err, doc) {
+    if (doc) {
+      deferred.resolve(doc.access_token);
+    } else {
+      deferred.reject('no token found');
+    }
+  });
+  return deferred.promise;
+}
 
 function tokenFrom(request) {
 	var auth = request.headers['authorization'];
@@ -70,7 +79,7 @@ function tokenFrom(request) {
     return request.query.access_token;
   }
 }
-  
+
 function logger(nodeName) {
   return {
     log: function(msg, p1, p2) {
