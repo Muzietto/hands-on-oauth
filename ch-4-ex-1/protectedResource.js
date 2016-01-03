@@ -37,7 +37,7 @@ var server = app.listen(9002, 'localhost', function () {
 function authorizeResource (req, res) {
   consolle.log('Going to extract the token');
 	var token = tokenFrom(req);
-  consolle.log('...and the token is... ' + token);
+  consolle.log('...and the request token is... ' + token);
 
   promiseToCheck(token)
     .then(function(matchingToken) {
@@ -51,17 +51,17 @@ function authorizeResource (req, res) {
 
 function promiseToCheck(token) {
   var deferred = Q.defer();
-  nosql.one(function(doc) {
-  if (doc.access_token === token) {
-    return doc;
-  }
-  }, function(err, doc) {
-    if (doc) {
-      deferred.resolve(doc.access_token);
-    } else {
-      deferred.reject('no token found');
-    }
-  });
+  nosql.one(
+    function(doc) { 
+      return (doc.access_token === token) ? doc : null;
+    },
+    function(err, doc) {
+      if (doc) {
+        deferred.resolve(doc.access_token);
+      } else {
+        deferred.reject('no token found');
+      }
+    });
   return deferred.promise;
 }
 
