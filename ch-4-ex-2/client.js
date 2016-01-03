@@ -1,3 +1,4 @@
+var consolle = logger('CLIENT'); 
 var express = require("express");
 var bodyParser = require('body-parser');
 var request = require("sync-request");
@@ -205,4 +206,14 @@ var server = app.listen(9000, 'localhost', function () {
   var port = server.address().port;
   console.log('OAuth Client is listening at http://%s:%s', host, port);
 });
- 
+
+function logger(nodeName) {
+  return {
+    log: function(msg, p1, p2) {
+      var prefix = nodeName + ' -> ';
+      if (!p1) console.log(prefix + msg);
+      else if (!p2) console.log(prefix + msg, p1);
+      else console.log(prefix + msg, p1, p2);
+    }
+  }
+};
