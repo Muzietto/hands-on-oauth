@@ -1,3 +1,4 @@
+var consolle = logger('CLIENT'); 
 var express = require("express");
 var bodyParser = require('body-parser');
 var request = require("sync-request");
@@ -61,7 +62,7 @@ app.get('/authorize', function(req, res){
 	authorizeUrl.query.redirect_uri = client.redirect_uris[0];
 	authorizeUrl.query.state = state;
 	
-	console.log("redirect", url.format(authorizeUrl));
+	consolle.log("redirect", url.format(authorizeUrl));
 	res.redirect(url.format(authorizeUrl));
 });
 
@@ -75,9 +76,9 @@ app.get("/callback", function(req, res){
 	
 	var resState = req.query.state;
 	if (resState == state) {
-		console.log('State value matches: expected %s got %s', state, resState);
+		consolle.log('State value matches: expected %s got %s', state, resState);
 	} else {
-		console.log('State DOES NOT MATCH: expected %s got %s', state, resState);
+		consolle.log('State DOES NOT MATCH: expected %s got %s', state, resState);
 		res.render('error', {error: 'State value did not match'});
 		return;
 	}
@@ -101,20 +102,20 @@ app.get("/callback", function(req, res){
 		}
 	);
 
-	console.log('Requesting access token for code %s',code);
+	consolle.log('Requesting access token for code %s',code);
 	
 	if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
 		var body = JSON.parse(tokRes.getBody());
 	
 		access_token = body.access_token;
-		console.log('Got access token: %s', access_token);
+		consolle.log('Got access token: %s', access_token);
 		if (body.refresh_token) {
 			refresh_token = body.refresh_token;
-			console.log('Got refresh token: %s', refresh_token);
+			consolle.log('Got refresh token: %s', refresh_token);
 		}
 		
 		scope = body.scope;
-		console.log('Got scope: %s', scope);
+		consolle.log('Got scope: %s', scope);
 
 		res.render('index', {access_token: access_token, refresh_token: refresh_token, scope: scope});
 	} else {
@@ -148,6 +149,16 @@ app.use('/', express.static('files/client'));
 var server = app.listen(9000, 'localhost', function () {
   var host = server.address().address;
   var port = server.address().port;
-  console.log('OAuth Client is listening at http://%s:%s', host, port);
+  consolle.log('OAuth Client is listening at http://%s:%s', host, port);
 });
- 
+
+function logger(nodeName) {
+  return {
+    log: function(msg, p1, p2) {
+      var prefix = nodeName + ' -> ';
+      if (!p1) console.log(prefix + msg);
+      else if (!p2) console.log(prefix + msg, p1);
+      else console.log(prefix + msg, p1, p2);
+    }
+  }
+};
