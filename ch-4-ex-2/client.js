@@ -62,12 +62,12 @@ app.get('/authorize', function(req, res){
 	authorizeUrl.query.redirect_uri = client.redirect_uris[0];
 	authorizeUrl.query.state = state;
 	
-	console.log("redirect", url.format(authorizeUrl));
+	consolle.log("redirect", url.format(authorizeUrl));
 	res.redirect(url.format(authorizeUrl));
-});
+}); 
 
 app.get("/callback", function(req, res){
-	
+	 
 	if (req.query.error) {
 		// it's an error response, act accordingly
 		res.render('error', {error: req.query.error});
@@ -76,10 +76,10 @@ app.get("/callback", function(req, res){
 	
 	var resState = req.query.state;
 	if (resState == state) {
-		console.log('State value matches: expected %s got %s', state, resState);
+		consolle.log('State value matches: expected %s got %s', state, resState);
 	} else {
-		console.log('State DOES NOT MATCH: expected %s got %s', state, resState);
-		res.render('error', {error: 'State value did not match'});
+		consolle.log('State DOES NOT MATCH: expected %s got %s', state, resState);
+		res.render('error', { error: 'State value did not match' });
 		return;
 	}
 
@@ -102,29 +102,29 @@ app.get("/callback", function(req, res){
 		}
 	);
 
-	console.log('Requesting access token for code %s',code);
+	consolle.log('Requesting access token for code %s',code);
 	
 	if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
 		var body = JSON.parse(tokRes.getBody());
 	
 		access_token = body.access_token;
-		console.log('Got access token: %s', access_token);
+		consolle.log('Got access token: %s', access_token);
 		if (body.refresh_token) {
 			refresh_token = body.refresh_token;
-			console.log('Got refresh token: %s', refresh_token);
+			consolle.log('Got refresh token: %s', refresh_token);
 		}
 		
 		scope = body.scope;
-		console.log('Got scope: %s', scope);
+		consolle.log('Got scope: %s', scope);
 
 		res.render('index', {access_token: access_token, refresh_token: refresh_token, scope: scope});
 	} else {
 		res.render('error', {error: 'Unable to fetch access token, server response: ' + tokRes.statusCode})
 	}
 });
-
+   
 app.get('/words', function (req, res) {
-	res.render('words', {words: '', timestamp: 0, result: 'noget'});
+	res.render('words', { words: '', timestamp: 0, result: 'noget', code: 'none' });
 	return;
 });
 
@@ -134,22 +134,24 @@ app.get('/get_words', function (req, res) {
 		'Authorization': 'Bearer ' + access_token,
 		'Content-Type': 'application/x-www-form-urlencoded'
 	};
-	
+	  
+	consolle.log('Requesting words'); 
+  var start = new Date().getTime();
 	var resource = request('GET', wordApi,
-		{headers: headers}
+		{ headers: headers }
 	);
+  consolle.log('Response arrived after millis=' + (new Date().getTime() - start));
 	
 	if (resource.statusCode >= 200 && resource.statusCode < 300) {
+    consolle.log('Response OK - body is ' + resource.getBody());
 		var body = JSON.parse(resource.getBody());
-		res.render('words', {words: body.words, timestamp: body.timestamp, result: 'get'});
+		res.render('words', { words: body.words, timestamp: body.timestamp, result: 'get', code: decode(resource.statusCode)  }); 
 		return;
 	} else {
-		res.render('words', {words: '', timestamp: 0, result: 'noget'});
+    consolle.log('Response KO - response code is: ' + decode(resource.statusCode));
+		res.render('words', { words: '', timestamp: 0, result: 'noget', code: decode(resource.statusCode)  });
 		return;
 	}
-	
-	
-	
 });
 
 app.get('/add_word', function (req, res) {
@@ -159,17 +161,17 @@ app.get('/add_word', function (req, res) {
 		'Content-Type': 'application/x-www-form-urlencoded'
 	};
 	
-	var form_body = qs.stringify({word: req.query.word});
+	var form_body = qs.stringify({ word: req.query.word });
 	
 	var resource = request('POST', wordApi,
 		{headers: headers, body: form_body}
 	);
 	
 	if (resource.statusCode >= 200 && resource.statusCode < 300) {
-		res.render('words', {words: '', timestamp: 0, result: 'add'});
+		res.render('words', { words: '', timestamp: 0, result: 'add' });
 		return;
 	} else {
-		res.render('words', {words: '', timestamp: 0, result: 'noadd'});
+		res.render('words', { words: '', timestamp: 0, result: 'noadd' });
 		return;
 	}
 	
@@ -185,13 +187,13 @@ app.get('/delete_word', function (req, res) {
 	
 	var resource = request('DELETE', wordApi,
 		{headers: headers}
-	);
-	
+	); 
+	 
 	if (resource.statusCode >= 200 && resource.statusCode < 300) {
-		res.render('words', {words: '', timestamp: 0, result: 'rm'});
+		res.render('words', { words: '', timestamp: 0, result: 'rm', codde: decode(resource.statusCode) });
 		return;
 	} else {
-		res.render('words', {words: '', timestamp: 0, result: 'norm'});
+		res.render('words', { words: '', timestamp: 0, result: 'norm', codde: decode(resource.statusCode) });
 		return;
 	}
 	
@@ -204,8 +206,17 @@ app.use('/', express.static('files/client'));
 var server = app.listen(9000, 'localhost', function () {
   var host = server.address().address;
   var port = server.address().port;
-  console.log('OAuth Client is listening at http://%s:%s', host, port);
+  consolle.log('OAuth Client is listening at http://%s:%s', host, port);
 });
+
+function decode(statusCode) {
+  return {
+    200: '200 - OK',
+    201: '201 - created',
+    401: '401 - unauthorized',
+    403: '403 - access denied'
+  }[statusCode];
+}
 
 function logger(nodeName) {
   return {

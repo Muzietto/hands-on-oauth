@@ -34,18 +34,18 @@ var getAccessToken = function(req, res, next) {
 		inToken = req.query.access_token
 	}
 	
-	console.log('Incoming token: %s', inToken);
+	consolle.log('Incoming token: %s', inToken);
 	nosql.one(function(token) {
 		if (token.access_token == inToken) {
 			return token;	
 		}
 	}, function(err, token) {
 		if (token) {
-			console.log("We found a matching token: %s", inToken);
+			consolle.log("We found a matching token: %s", inToken);
 		} else {
-			console.log('No matching token was found.');
+			consolle.log('No matching token was found.');
 		}
-		req.access_token = token;
+		req.access_token = token; // horrible side effect!!
 		next();
 		return;
 	});
@@ -53,19 +53,29 @@ var getAccessToken = function(req, res, next) {
 
 var requireAccessToken = function(req, res, next) {
 	if (req.access_token) {
-		next();
+		next(); // this is LAST.bind(undefined, req, res)
 	} else {
-		res.status(401).end();
+		res.status(401).end(); // unauthorized
 	}
 };
 
 var savedWords = [];
 
-app.get('/words', getAccessToken, requireAccessToken, function(req, res) {
-	/*
-	 * Make this function require the "read" scope
-	 */
-	res.json({words: savedWords.join(' '), timestamp: Date.now()});
+/* we'll have:
+ * - getAccessToken(req, res, requireAccessToken);
+ * - requireAccessToken(res, res, LAST.bind(undefined, res, req));
+ */
+app.get('/words', getAccessToken, requireAccessToken, function LAST(req, res) {
+	/* Make this function require the "read" scope */
+  var scopes = req.access_token.scope; // added by getAccessToken
+  if (__(scopes).contains('read')) {
+    consolle.log('Token can READ.');
+	  res.json({ words: savedWords.join(' '), timestamp: Date.now() });
+  } else {
+    consolle.log('Token canNOT read.');
+    res.set('WWW-Authenticate', 'Bearer realm=localhost:9002, error="insufficient scope", scope="read"');
+    res.status(403).end();  // access denied
+  }
 });
 
 app.post('/words', getAccessToken, requireAccessToken, function(req, res) {
@@ -89,7 +99,7 @@ var server = app.listen(9002, 'localhost', function () {
   var host = server.address().address;
   var port = server.address().port;
 
-  console.log('OAuth Resource Server is listening at http://%s:%s', host, port);
+  consolle.log('OAuth Resource Server is listening at http://%s:%s', host, port);
 });
  
 function logger(nodeName) {

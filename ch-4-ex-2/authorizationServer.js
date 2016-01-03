@@ -86,11 +86,11 @@ app.get("/authorize", function(req, res){
 	var client = getClient(req.query.client_id);
 	
 	if (!client) {
-		console.log('Unknown client %s', req.query.client_id);
+		consolle.log('Unknown client %s', req.query.client_id);
 		res.render('error', {error: 'Unknown client'});
 		return;
 	} else if (!__.contains(client.redirect_uris, req.query.redirect_uri)) {
-		console.log('Mismatched redirect URI, expected %s got %s', client.redirect_uris, req.query.redirect_uri);
+		consolle.log('Mismatched redirect URI, expected %s got %s', client.redirect_uris, req.query.redirect_uri);
 		res.render('error', {error: 'Invalid redirect URI'});
 		return;
 	} else {
@@ -111,7 +111,7 @@ app.get("/authorize", function(req, res){
 		
 		requests[reqid] = req.query;
 		
-		res.render('approve', {client: client, reqid: reqid, scope: rscope});
+		res.render('approve', { client: client, reqid: reqid, scope: rscope });
 		return;
 	}
 
@@ -179,12 +179,12 @@ app.post('/approve', function(req, res) {
 
 			var user = userInfo[user];
 			if (!user) {		
-				console.log('Unknown user %s', user)
+				consolle.log('Unknown user %s', user)
 				res.status(500).render('error', {error: 'Unknown user ' + user});
 				return;
 			}
 	
-			console.log("User %j", user);
+			consolle.log("User %j", user);
 
 			var token_response = generateTokens(req, res, query.clientId, user, cscope);		
 
@@ -233,11 +233,11 @@ var generateTokens = function (req, res, clientId, user, scope, nonce, generateR
 		nosql.insert({ refresh_token: refresh_token, client_id: clientId, scope: scope, user: user });
 	}
 	
-	console.log('Issuing access token %s', access_token);
+	consolle.log('Issuing access token %s', access_token);
 	if (refresh_token) {
-		console.log('and refresh token %s', refresh_token);
+		consolle.log('and refresh token %s', refresh_token);
 	}
-	console.log('with scope %s', access_token, scope);
+	consolle.log('with scope %s', access_token, scope);
 
 	var cscope = null;
 	if (scope) {
@@ -263,7 +263,7 @@ app.post("/token", function(req, res){
 	if (req.body.client_id) {
 		if (clientId) {
 			// if we've already seen the client's credentials in the authorization header, this is an error
-			console.log('Client attempted to authenticate with multiple methods');
+			consolle.log('Client attempted to authenticate with multiple methods');
 			res.status(401).json({error: 'invalid_client'});
 			return;
 		}
@@ -274,13 +274,13 @@ app.post("/token", function(req, res){
 	
 	var client = getClient(clientId);
 	if (!client) {
-		console.log('Unknown client %s', clientId);
+		consolle.log('Unknown client %s', clientId);
 		res.status(401).json({error: 'invalid_client'});
 		return;
 	}
 	
 	if (client.client_secret != clientSecret) {
-		console.log('Mismatched client secret, expected %s got %s', client.client_secret, clientSecret);
+		consolle.log('Mismatched client secret, expected %s got %s', client.client_secret, clientSecret);
 		res.status(401).json({error: 'invalid_client'});
 		return;
 	}
@@ -295,25 +295,25 @@ app.post("/token", function(req, res){
 
 				var user = userInfo[code.user];
 				if (!user) {		
-					console.log('Unknown user %s', user)
+					consolle.log('Unknown user %s', user)
 					res.status(500).render('error', {error: 'Unknown user ' + code.user});
 					return;
 				}	
-				console.log("User %j", user);
+				consolle.log("User %j", user);
 
 				var token_response = generateTokens(req, res, clientId, user, code.scope, code.authorizationEndpointRequest.nonce, true);
 
 				res.status(200).json(token_response);
-				console.log('Issued tokens for code %s', req.body.code);
+				consolle.log('Issued tokens for code %s', req.body.code);
 				
 				return;
 			} else {
-				console.log('Client mismatch, expected %s got %s', code.authorizationEndpointRequest.client_id, clientId);
+				consolle.log('Client mismatch, expected %s got %s', code.authorizationEndpointRequest.client_id, clientId);
 				res.status(400).json({error: 'invalid_grant'});
 				return;
 			}
 		} else {
-			console.log('Unknown code, %s', req.body.code);
+			consolle.log('Unknown code, %s', req.body.code);
 			res.status(400).json({error: 'invalid_grant'});
 			return;
 		}
@@ -330,7 +330,7 @@ app.post("/token", function(req, res){
 		var access_token = randomstring.generate();
 		var token_response = { access_token: access_token, token_type: 'Bearer', scope: scope.join(' ') };
 		nosql.insert({ access_token: access_token, client_id: clientId, scope: scope });
-		console.log('Issuing access token %s', access_token);
+		consolle.log('Issuing access token %s', access_token);
 		res.status(200).json(token_response);
 		return;	
 		
@@ -341,20 +341,20 @@ app.post("/token", function(req, res){
 			if (tokens.length == 1) {
 				var token = tokens[0];
 				if (token.client_id != clientId) {
-					console.log('Invalid client using a refresh token, expected %s got %s', token.client_id, clientId);
+					consolle.log('Invalid client using a refresh token, expected %s got %s', token.client_id, clientId);
 					nosql.remove(function(found) { return (found == token); }, function () {} );
 					res.status(400).end();
 					return
 				}
-				console.log("We found a matching token: %s", req.body.refresh_token);
+				consolle.log("We found a matching token: %s", req.body.refresh_token);
 				var access_token = randomstring.generate();
 				var token_response = { access_token: access_token, token_type: 'Bearer',  refresh_token: req.body.refresh_token };
 				nosql.insert({ access_token: access_token, client_id: clientId });
-				console.log('Issuing access token %s for refresh token %s', access_token, req.body.refresh_token);
+				consolle.log('Issuing access token %s for refresh token %s', access_token, req.body.refresh_token);
 				res.status(200).json(token_response);
 				return;
 			} else {
-				console.log('No matching token was found.');
+				consolle.log('No matching token was found.');
 				res.status(401).end();
 			}
 		});
@@ -362,15 +362,15 @@ app.post("/token", function(req, res){
 		var username = req.body.username;
 		var user = getUser(username);
 		if (!user) {
-			console.log('Unknown user %s', user);
+			consolle.log('Unknown user %s', user);
 			res.status(401).json({error: 'invalid_grant'});
 			return;
 		}
-		console.log("user is %j ", user)
+		consolle.log("user is %j ", user)
 		
 		var password = req.body.password;
 		if (user.password != password) {
-			console.log('Mismatched resource owner password, expected %s got %s', user.password, password);
+			consolle.log('Mismatched resource owner password, expected %s got %s', user.password, password);
 			res.status(401).json({error: 'invalid_grant'});
 			return;
 		}
@@ -382,7 +382,7 @@ app.post("/token", function(req, res){
 		res.status(200).json(token_response);		
 		return;
 	} else {
-		console.log('Unknown grant type %s', req.body.grant_type);
+		consolle.log('Unknown grant type %s', req.body.grant_type);
 		res.status(400).json({error: 'unsupported_grant_type'});
 	}
 });
@@ -396,7 +396,7 @@ var server = app.listen(9001, 'localhost', function () {
   var host = server.address().address;
   var port = server.address().port;
 
-  console.log('OAuth Authorization Server is listening at http://%s:%s', host, port);
+  consolle.log('OAuth Authorization Server is listening at http://%s:%s', host, port);
 });
 
 function logger(nodeName) {
