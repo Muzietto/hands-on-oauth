@@ -5,7 +5,8 @@ var cons = require('consolidate');
 var nosql = require('nosql').load('database.nosql');
 var __ = require('underscore');
 var cors = require('cors');
-
+var Q = require('q');
+ 
 var app = express();
 
 app.use(bodyParser.urlencoded({ extended: true })); // support form-encoded bodies (for bearer tokens)
@@ -23,26 +24,11 @@ var resource = {
 	'description': 'This data has been protected by OAuth 2.0'
 };
 
-var getAccessToken = function(req, res, next) {
-	/*
-	 * Scan for an access token on the incoming request.
-	 */
+var authorizeResource = function(req, res) {
   consolle.log('Going to extract the token');
-	var inToken = null;
-	var auth = req.headers['authorization'];
-
-  if (auth && auth.toLowerCase().indexOf('bearer') === 0) {
-    consolle.log('HTTP header');
-    inToken = auth.slice('bearer '.length);
-  } else if (req.body && req.body.access_token) {
-    consolle.log('POSTed form');
-    inToken = req.body.access_token;
-  } else if (req.query && req.query.access_token) {
-    consolle.log('GOTten querystring');
-    inToken = req.query.access_token;
-  }
+	var inToken = tokenFrom(req);
   consolle.log('...and the token is... ' + inToken);
-
+  
   nosql.one(function(token) {
     if (token.access_token === inToken) {
       return token;
@@ -50,35 +36,18 @@ var getAccessToken = function(req, res, next) {
   }, function(err, token) {
     if (token) {
       consolle.log('Found matching token %s', inToken);
+      req.access_token = token;
+      res.json(resource);
     } else {
       consolle.log('No matching token was found');
+      res.status(401).end();    
     }
-    req.access_token = token;
-
-    next();
     return;
   });
 };
 
 app.options('/resource', cors());
-/*
- * Add the getAccessToken function to this handler
- */
-app.post('/resource', cors(), getAccessToken, function(req, res){
-
-	/*
-	 * Check to see if the access token was found or not
-	 */
-  // stuck directly in the req by the helper method getAccessToken
-  if (req.access_token) {
-    // WRAP THIS LINE IN A CONDITIONAL STATEMENT
-    res.json(resource);
-    // WRAP THIS LINE IN A CONDITIONAL STATEMENT    
-  } else {
-    res.status(401).end();    
-  }
-	
-});
+app.post('/resource', cors(), authorizeResource);
 
 var server = app.listen(9002, 'localhost', function () {
   var host = server.address().address;
@@ -86,6 +55,21 @@ var server = app.listen(9002, 'localhost', function () {
 
   consolle.log('OAuth Resource Server is listening at http://%s:%s', host, port);
 });
+
+function tokenFrom(request) {
+	var auth = request.headers['authorization'];
+
+  if (auth && auth.toLowerCase().indexOf('bearer') === 0) {
+    consolle.log('HTTP header');
+    return auth.slice('bearer '.length);
+  } else if (request.body && request.body.access_token) {
+    consolle.log('POSTed form');
+    return request.body.access_token;
+  } else if (request.query && request.query.access_token) {
+    consolle.log('GOTten querystring');
+    return request.query.access_token;
+  }
+}
   
 function logger(nodeName) {
   return {
