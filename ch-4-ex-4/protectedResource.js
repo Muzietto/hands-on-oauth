@@ -1,3 +1,4 @@
+var consolle = logger('RESOURCE'); 
 var express = require("express");
 var bodyParser = require('body-parser');
 var cons = require('consolidate');
@@ -33,16 +34,16 @@ var getAccessToken = function(req, res, next) {
 		inToken = req.query.access_token
 	}
 	
-	console.log('Incoming token: %s', inToken);
+	consolle.log('Incoming token: %s', inToken);
 	nosql.one(function(token) {
 		if (token.access_token == inToken) {
 			return token;	
 		}
 	}, function(err, token) {
 		if (token) {
-			console.log("We found a matching token: %s", inToken);
+			consolle.log("We found a matching token: %s", inToken);
 		} else {
-			console.log('No matching token was found.');
+			consolle.log('No matching token was found.');
 		}
 		req.access_token = token;
 		next();
@@ -59,7 +60,7 @@ var requireAccessToken = function(req, res, next) {
 };
 
 var aliceFavorites = {
-	'movies': ['The Multidmensional Vector', 'Space Fights', 'Jewelry Boss'],
+	'movies': ['The Multidimensional Vector', 'Space Fights', 'Jewelry Boss'],
 	'foods': ['bacon', 'pizza', 'bacon pizza'],
 	'music': ['techno', 'industrial', 'alternative']
 };
@@ -71,20 +72,35 @@ var bobFavorites = {
 };
 
 app.get('/favorites', getAccessToken, requireAccessToken, function(req, res) {
-	
-	/*
-	 * Get different user information based on the information of who approved the token
-	 */
-	
-	var unknown = {user: 'Unknown', favorites: {movies: [], foods: [], music: []}};
-	res.json(unknown);
-
+	/* Get different user information based on the information of who approved the token */
+  var user = req.access_token.user;
+  consolle.log('user requesting favorites is ' + user);
+  var data = {user: 'Unknown', favorites: {movies: [], foods: [], music: []}}
+  if (user === 'alice') {
+    data.user = 'Alice';
+    data.favorites = aliceFavorites;
+  }
+  if (user === 'bob') {
+    data.user = 'Bob';
+    data.favorites = bobFavorites;
+  }
+	res.json(data);
 });
 
 var server = app.listen(9002, 'localhost', function () {
   var host = server.address().address;
   var port = server.address().port;
 
-  console.log('OAuth Resource Server is listening at http://%s:%s', host, port);
+  consolle.log('OAuth Resource Server is listening at http://%s:%s', host, port);
 });
- 
+
+function logger(nodeName) {
+  return {
+    log: function(msg, p1, p2) {
+      var prefix = nodeName + ' -> ';
+      if (!p1) console.log(prefix + msg);
+      else if (!p2) console.log(prefix + msg, p1);
+      else console.log(prefix + msg, p1, p2);
+    }
+  }
+};

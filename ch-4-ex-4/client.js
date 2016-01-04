@@ -1,3 +1,4 @@
+var consolle = logger('CLIENT'); 
 var express = require("express");
 var bodyParser = require('body-parser');
 var request = require("sync-request");
@@ -41,9 +42,10 @@ var state = null;
 var access_token = null;
 var refresh_token = null;
 var scope = null;
+var user = null;
 
 app.get('/', function (req, res) {
-	res.render('index', {access_token: access_token, refresh_token: refresh_token, scope: scope});
+	res.render('index', {access_token: access_token, user: user, refresh_token: refresh_token, scope: scope});
 });
 
 app.get('/authorize', function(req, res){
@@ -51,17 +53,19 @@ app.get('/authorize', function(req, res){
 	access_token = null;
 	refresh_token = null;
 	scope = null;
+	user = null;
 	state = randomstring.generate();
 	
 	var authorizeUrl = url.parse(authServer.authorizationEndpoint, true);
 	delete authorizeUrl.search; // this is to get around odd behavior in the node URL library
 	authorizeUrl.query.response_type = 'code';
 	authorizeUrl.query.scope = client.scope;
+	authorizeUrl.query.user = client.user;
 	authorizeUrl.query.client_id = client.client_id;
 	authorizeUrl.query.redirect_uri = client.redirect_uris[0];
 	authorizeUrl.query.state = state;
 	
-	console.log("redirect", url.format(authorizeUrl));
+	consolle.log("redirect", url.format(authorizeUrl));
 	res.redirect(url.format(authorizeUrl));
 });
 
@@ -69,16 +73,16 @@ app.get("/callback", function(req, res){
 	
 	if (req.query.error) {
 		// it's an error response, act accordingly
-		res.render('error', {error: req.query.error});
+		res.render('error', { error: req.query.error });
 		return;
 	}
 	
 	var resState = req.query.state;
 	if (resState == state) {
-		console.log('State value matches: expected %s got %s', state, resState);
+		consolle.log('State value matches: expected %s got %s', state, resState);
 	} else {
-		console.log('State DOES NOT MATCH: expected %s got %s', state, resState);
-		res.render('error', {error: 'State value did not match'});
+		consolle.log('State DOES NOT MATCH: expected %s got %s', state, resState);
+		res.render('error', { error: 'State value did not match' });
 		return;
 	}
 
@@ -101,24 +105,26 @@ app.get("/callback", function(req, res){
 		}
 	);
 
-	console.log('Requesting access token for code %s',code);
+	consolle.log('Requesting access token for code %s',code);
 	
 	if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
 		var body = JSON.parse(tokRes.getBody());
 	
 		access_token = body.access_token;
-		console.log('Got access token: %s', access_token);
+		consolle.log('Got access token: %s', access_token);
 		if (body.refresh_token) {
 			refresh_token = body.refresh_token;
-			console.log('Got refresh token: %s', refresh_token);
+			consolle.log('Got refresh token: %s', refresh_token);
 		}
 		
 		scope = body.scope;
-		console.log('Got scope: %s', scope);
+    user = body.user;
+		consolle.log('Got scope: %s', scope);
+		consolle.log('Got user: %s', user);
 
-		res.render('index', {access_token: access_token, refresh_token: refresh_token, scope: scope});
+		res.render('index', { access_token: access_token, user: user, refresh_token: refresh_token, scope: scope });
 	} else {
-		res.render('error', {error: 'Unable to fetch access token, server response: ' + tokRes.statusCode})
+		res.render('error', { error: 'Unable to fetch access token, server response: ' + tokRes.statusCode })
 	}
 });
 
@@ -129,19 +135,18 @@ app.get('/favorites', function(req, res) {
 	};
 	
 	var resource = request('GET', favoritesApi,
-		{headers: headers}
+		{ headers: headers }
 	);
 	
 	if (resource.statusCode >= 200 && resource.statusCode < 300) {
 		var body = JSON.parse(resource.getBody());
-		console.log('Got data: ', body);
-		res.render('favorites', {scope: scope, data: body});
+		consolle.log('Got data: ', body);
+		res.render('favorites', { scope: scope, user: user, data: body });
 		return;
 	} else {
-		res.render('favorites', {scope: scope, data: {user: '', favorites: {movies: [], foods: [], music: []}}});
+		res.render('favorites', { scope: scope, data: { user: '', favorites: {movies: [], foods: [], music: []}}});
 		return;
 	}
-	
 });
 
 app.use('/', express.static('files/client'));
@@ -149,6 +154,16 @@ app.use('/', express.static('files/client'));
 var server = app.listen(9000, 'localhost', function () {
   var host = server.address().address;
   var port = server.address().port;
-  console.log('OAuth Client is listening at http://%s:%s', host, port);
+  consolle.log('OAuth Client is listening at http://%s:%s', host, port);
 });
- 
+
+function logger(nodeName) {
+  return {
+    log: function(msg, p1, p2) {
+      var prefix = nodeName + ' -> ';
+      if (!p1) console.log(prefix + msg);
+      else if (!p2) console.log(prefix + msg, p1);
+      else console.log(prefix + msg, p1, p2);
+    }
+  }
+};
