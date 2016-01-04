@@ -32,7 +32,7 @@ var client = {
 	"client_id": "oauth-client-1",
 	"client_secret": "oauth-client-secret-1",
 	"redirect_uris": ["http://localhost:9000/callback"],
-	"scope": "fruit veggies meats"
+	"scope": "fruits veggies meats"
 };
 
 var produceApi = 'http://localhost:9002/produce';
@@ -117,9 +117,9 @@ app.get("/callback", function(req, res){
 		scope = body.scope;
 		consolle.log('Got scope: %s', scope);
 
-		res.render('index', {access_token: access_token, refresh_token: refresh_token, scope: scope});
+		res.render('index', { access_token: access_token, refresh_token: refresh_token, scope: scope });
 	} else {
-		res.render('error', {error: 'Unable to fetch access token, server response: ' + tokRes.statusCode})
+		res.render('error', { error: 'Unable to fetch access token, server response: ' + tokRes.statusCode })
 	}
 });
 
@@ -130,15 +130,15 @@ app.get('/produce', function(req, res) {
 	};
 	
 	var resource = request('GET', produceApi,
-		{headers: headers}
+		{ headers: headers }
 	);
 	
 	if (resource.statusCode >= 200 && resource.statusCode < 300) {
 		var body = JSON.parse(resource.getBody());
-		res.render('produce', {scope: scope, data: body});
+		res.render('produce', { scope: scope, data: body });
 		return;
 	} else {
-		res.render('produce', {scope: scope, data: {fruits: [], veggies: [], meats: []}});
+		res.render('produce', { scope: scope, data: { fruits: [], veggies: [], meats: [] } });
 		return;
 	}
 	
