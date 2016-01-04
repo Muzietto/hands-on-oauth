@@ -32,7 +32,7 @@ var client = {
 	"client_id": "oauth-client-1",
 	"client_secret": "oauth-client-secret-1",
 	"redirect_uris": ["http://localhost:9000/callback"],
-	"scope": "fruits veggies meats"
+	"scope": "fruits veggies meats low-carb"
 };
 
 var produceApi = 'http://localhost:9002/produce';

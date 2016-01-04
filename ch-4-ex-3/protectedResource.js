@@ -73,6 +73,17 @@ app.get('/produce', getAccessToken, requireAccessToken, function(req, res) {
   if (__(scopes).contains('meats')) {
 		produce.meats = ['bacon', 'steak', 'chicken breast'];
   }
+  if (__(scopes).contains('low-carb')) {
+		__(produce)
+      .keys()
+      .forEach(function(key) {
+        consolle.log('filtering list ' + key);
+        produce[key] = __(produce[key]).filter(function(item) {
+          consolle.log('filtering ' + item);
+          return !__(['banana', 'potato', 'bacon', 'steak']).contains(item);
+        });
+      });
+  }
 	res.json(produce);
 });
 
