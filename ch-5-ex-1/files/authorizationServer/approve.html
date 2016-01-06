@@ -30,6 +30,7 @@
       <div class="container">
         <div class="navbar-header">
           <a class="navbar-brand" href="/">OAuth in Action: <span class="label label-danger">OAuth Authorization Server</label></a>
+          <a class="navbar-brand" href="http://localhost:9000"><span class="label label-primary">OAuth Client</label></a>
         </div>
       </div>
     </nav>
@@ -60,7 +61,10 @@
 			   <p>The client is requesting access to the following:</p>
 			   <ul>
 			   <% _.each(scope, function(s) { %>
-			   	  <li><input type="checkbox" name="scope_<%- s %>" id="scope_<%- s %>" checked="checked"> <label for="scope_<%- s %>"><%- s %></label></li>
+			   	  <li>
+            <input type="checkbox" name="scope_<%- s %>" id="scope_<%- s %>" checked="checked"> 
+            <label for="scope_<%- s %>"><%- s %></label>
+            </li>
 			   <% }); %>
 		       </ul>
 			   <% } %>
