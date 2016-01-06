@@ -55,13 +55,26 @@ app.get('/', function(req, res) {
 });
 
 app.get("/authorize", function(req, res){
+  
+  // http://stackoverflow.com/questions/14417592/node-js-difference-between-req-query-and-req-params/14508182#14508182
+  consolle.log('Received req with field query=' + JSON.stringify(req.query));
 	
-	/*
-	 * Process the request, validate the client, and send the user to the approval page
-	 */
+	/* Process the request, validate the client, and send the user to the approval page */
+  consolle.log('authorization request from client_id=' + req.query.client_id);
+  var client = getClient(req.query.client_id);
 	
-	res.render('error', {error: 'Not implemented'});
-	
+  if (!client) {
+    res.render('error', { error: 'client unknown for client_id=' + req.query.client_id });
+    return;
+  }
+  
+  if (!__(client.redirect_uris).contains(req.query.redirect_uri+'pippo')) {
+    res.render('error', { error: 'invalid redirect uri for client_id=' + req.query.client_id });
+    return;
+  }
+  
+
+  
 
 });
 
