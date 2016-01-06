@@ -41,11 +41,15 @@ var codes = {};
 var requests = {};
 
 var getClient = function(clientId) {
-	return __.find(clients, function(client) { return client.client_id == clientId; });
+	return __(clients).find(function(client) {
+    return client.client_id == clientId;
+  });
 };
 
 var getUser = function(username) {
-	return __.find(userInfo, function (user, key) { return user.username == username; });
+	return __(userInfo).find(function (user, key) {
+    return user.username == username;
+  });
 };
 
 var userInfo = {
