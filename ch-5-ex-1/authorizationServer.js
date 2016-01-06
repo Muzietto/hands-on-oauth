@@ -42,10 +42,11 @@ var clients = [
 	}
 ];
 
-var codes = {};
-
-// collection of all authentication requests received so far
+// collection of all authentication requests received so far (and not yet redeemed)
 var requests = {};
+
+// collection of all authentication codes prepared so far (and not yet redeemed)
+var codes = {};
 
 var getClient = function(clientId) {
 	return __.find(clients, function(client) { return client.client_id == clientId; });
@@ -80,26 +81,46 @@ app.get("/authorize", function(req, res){
 
   // listify the scope string
   var rscope = req.query.scope ? req.query.scope.split(' ') : undefined;
-  res.render('approve', { client: client, reqid: reqid, scope: rscope });
   
-
+  res.render('approve', { client: client, reqid: reqid, scope: rscope });
 });
 
 app.post('/approve', function(req, res) {
 
-	/*
-	 * Process the results of the approval page, authorize the client
-	 */
-	
-	res.render('error', {error: 'Not implemented'});
+	/* Process the results of the approval page, authorize the client */
+  consolle.log('got token request with body=' + JSON.stringify(req.body));
+  
+  var reqid = req.body.reqid;
+  var query = requests[reqid];
+  delete requests[reqid];
+  
+  if (!query) {
+    consolle.log('No matching authorisation request for reqid=' + reqid);
+    res.render('error', { error: 'No matching authorisation request for reqid=' + reqid });
+    return;
+  }
+  
+  // let's go to work
+  var /*auth_*/code = randomstring.generate(8);
+  codes[code] = { authorizationEndpointRequest: query };
+
+  if (!req.body.approve) {  // namely 'deny'
+    consolle.log('No approval possible for approve=' + req.body.approve);
+    var urlParsed = url.parse(query.redirect_uri);
+    delete urlParsed.search; // just do it
+    urlParsed.query = urlParsed.query || {};
+    urlParsed.query.code = code;
+    urlParsed.query.state = query.state;
+    res.redirect(url.format(urlParsed));
+    return;
+  }
+  
 	
 });
 
 app.post("/token", function(req, res){
 
-	/*
-	 * Process the request, issue an access token
-	 */
+	/* Process the request, issue an access token */
 
 	res.render('error', {error: 'Not implemented'});
 	
