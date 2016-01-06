@@ -44,6 +44,7 @@ var clients = [
 
 var codes = {};
 
+// collection of all authentication requests received so far
 var requests = {};
 
 var getClient = function(clientId) {
@@ -68,12 +69,18 @@ app.get("/authorize", function(req, res){
     return;
   }
   
-  if (!__(client.redirect_uris).contains(req.query.redirect_uri+'pippo')) {
+  if (!__(client.redirect_uris).contains(req.query.redirect_uri)) {
     res.render('error', { error: 'invalid redirect uri for client_id=' + req.query.client_id });
     return;
   }
   
+  // client is ok. let's save its generalities
+  var reqid = randomstring.generate(8);
+  requests[reqid] = req.query;
 
+  // listify the scope string
+  var rscope = req.query.scope ? req.query.scope.split(' ') : undefined;
+  res.render('approve', { client: client, reqid: reqid, scope: rscope });
   
 
 });
