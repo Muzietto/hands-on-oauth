@@ -50,6 +50,7 @@ var scope = null;
 var id_token = null;
 
 app.get('/', function (req, res) {
+  consolle.log('Requesting client homepage');
 	res.render('index', {access_token: access_token, refresh_token: refresh_token, scope: scope});
 });
 
