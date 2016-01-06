@@ -51,7 +51,7 @@ var id_token = null;
 
 app.get('/', function (req, res) {
   consolle.log('Requesting client homepage');
-	res.render('index', {access_token: access_token, refresh_token: refresh_token, scope: scope});
+	res.render('index', { access_token: access_token, refresh_token: refresh_token, scope: scope });
 });
 
 app.get('/authorize', function(req, res){
@@ -74,19 +74,20 @@ app.get('/authorize', function(req, res){
 });
 
 app.get("/callback", function(req, res){
+  consolle.log('Client called back with query=' + JSON.stringify(req.query));
 	
 	if (req.query.error) {
 		// it's an error response, act accordingly
-		res.render('error', {error: req.query.error});
+		res.render('error', { error: req.query.error });
 		return;
 	}
 	
 	var resState = req.query.state;
-	if (resState == state) {
+	if (resState === state) {
 		consolle.log('State value matches: expected %s got %s', state, resState);
 	} else {
 		consolle.log('State DOES NOT MATCH: expected %s got %s', state, resState);
-		res.render('error', {error: 'State value did not match'});
+		res.render('error', { error: 'State value did not match' });
 		return;
 	}
 
@@ -226,8 +227,8 @@ function logger(nodeName) {
   return {
     log: function(msg, p1, p2) {
       var prefix = nodeName + ' -> ';
-      if (!p1) console.log(prefix + msg);
-      else if (!p2) console.log(prefix + msg, p1);
+      if (typeof p1 === 'undefined') console.log(prefix + msg);
+      else if (typeof p2 === 'undefined') console.log(prefix + msg, p1);
       else console.log(prefix + msg, p1, p2);
     }
   }
