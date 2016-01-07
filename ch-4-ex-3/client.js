@@ -70,7 +70,7 @@ app.get("/callback", function(req, res){
 	
 	if (req.query.error) {
 		// it's an error response, act accordingly
-		res.render('error', {error: req.query.error});
+		res.render('error', { error: req.query.error });
 		return;
 	}
 	
@@ -79,7 +79,7 @@ app.get("/callback", function(req, res){
 		consolle.log('State value matches: expected %s got %s', state, resState);
 	} else {
 		consolle.log('State DOES NOT MATCH: expected %s got %s', state, resState);
-		res.render('error', {error: 'State value did not match'});
+		res.render('error', { error: 'State value did not match' });
 		return;
 	}
 
