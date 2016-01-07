@@ -103,6 +103,8 @@ app.get("/callback", function(req, res){
 		'Authorization': 'Basic ' + new Buffer(querystring.escape(client.client_id) + ':' + querystring.escape(client.client_secret)).toString('base64')
 	};
 
+	consolle.log('Requesting access token for code %s', code);
+
 	var tokRes = request('POST', authServer.tokenEndpoint, 
 		{	
 			body: form_data,
@@ -110,7 +112,7 @@ app.get("/callback", function(req, res){
 		}
 	);
 
-	consolle.log('Requesting access token for code %s',code);
+	consolle.log('Response status code is %s', tokRes.statusCode);
 	
 	if (tokRes.statusCode >= 200 && tokRes.statusCode < 300) {
 		var body = JSON.parse(tokRes.getBody());
@@ -122,12 +124,15 @@ app.get("/callback", function(req, res){
 			consolle.log('Got refresh token: %s', refresh_token);
 		}
 		
-		scope = body.scope;
+		scope = body.scope; 
 		consolle.log('Got scope: %s', scope);
 
-		res.render('index', {access_token: access_token, refresh_token: refresh_token, scope: scope});
+		res.render('index', { access_token: access_token, refresh_token: refresh_token, scope: scope });
 	} else {
-		res.render('error', {error: 'Unable to fetch access token, server response: ' + tokRes.statusCode})
+
+    // next line blasts the server!!! (?!?!?!?!?!?)
+    // consolle.log('JSON errored response from server is ' + tokRes.getBody());
+		res.render('error', { error: 'Unable to fetch access token, server response: ' + tokRes.statusCode })
 	}
 });
 
