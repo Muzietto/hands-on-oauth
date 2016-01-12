@@ -176,6 +176,36 @@ app.post("/token", function(req, res){
   
   // verify grant type
   var grantType = req.body.grant_type;
+  if (grantType === 'refresh_token') {
+    consolle.log('They want to refresh a token!!: ' + grantType);
+    
+    nosql.all(function(token) { // why not FILTER?!?!?!?
+      return (token.refresh_token === req.body.refresh_token);        
+    }, function(err, tokens) {
+      if (tokens.length === 1) {
+        var token tokens[0];
+        if (token.client_id !== clientId) {
+          nosql.remove(function(found) { return found === token; }, function() {});
+          res.status(400).json({ error: 'bad_request_bad_client_id' });
+          return;
+        } else {
+          // refresh token hit the jackpot!!!
+          var newAccessToken = randomstring.generate();
+          nosql.insert({ access_token: newAccessToken, client_id: clientId, timestamp: new Date().getTime() });
+          var newTokenResponse = { access_token: newAccessToken, refresh_token: req.body.refresh_token, token_type: 'Bearer' };
+          res.status(200).json(newTokenResponse);
+          return;
+        }
+      } else {
+        res.status(401).json({ error: 'unauthorized_invalid_refresh_token' });
+        return;        
+      }
+    });
+    
+    res.status(400).json({ error: 'unsupported_grant_type' });
+    return;
+  }
+  
   if (grantType !== 'authorization_code') {
     consolle.log('Unsupported grant type: ' + grantType);  
     res.status(400).json({ error: 'unsupported_grant_type' });
@@ -203,10 +233,16 @@ app.post("/token", function(req, res){
 
   // redeem the authentication code by creating a token and storing it
   var accessToken = randomstring.generate();
-  consolle.log('inserting token: ' + accessToken);
-  nosql.insert({ access_token: accessToken, client_id: clientId, timestamp: new Date().getTime() });
+  // give a refresh token as well
+  var refreshToken = randomstring.generate();
   
-  var tokenResponse = { access_token: accessToken, token_type: 'Bearer' }
+  consolle.log('inserting access token: ' + accessToken);
+  nosql.insert({ access_token: accessToken, client_id: clientId, timestamp: new Date().getTime() });
+  consolle.log('inserting refresh token: ' + refreshToken);
+  nosql.insert({ refresh_token: refreshToken, client_id: clientId, timestamp: new Date().getTime() });
+  
+  var tokenResponse = { access_token: accessToken, refresh_token: refreshToken, token_type: 'Bearer' }
+  res.setHeader("Expires", new Date(Date.now() + 5000).toUTCString());
   res.status(200).json(tokenResponse);
 });
 
