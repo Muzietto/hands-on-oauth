@@ -179,7 +179,7 @@ app.post("/token", function(req, res){
   if (grantType !== 'authorization_code') {
     consolle.log('Unsupported grant type: ' + grantType);  
     res.status(400).json({ error: 'unsupported_grant_type' });
-    return;    
+    return;
   }
 
   // verify authentication code given previously to the client

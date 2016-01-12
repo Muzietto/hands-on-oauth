@@ -51,7 +51,7 @@ var getAccessToken = function(req, res, next) {
 	nosql.one(function(token) {
     consolle.log('trying ' + JSON.stringify(token));
 		if (token.access_token === inToken) {
-      consolle.log('YEY!!' + token.access_token);
+      consolle.log('YEY!! - ' + token.access_token);
 			return token;	
 		}
 	}, function(err, token) {
