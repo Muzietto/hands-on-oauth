@@ -204,7 +204,7 @@ app.post("/token", function(req, res){
   // redeem the authentication code by creating a token and storing it
   var accessToken = randomstring.generate();
   consolle.log('inserting token: ' + accessToken);
-  nosql.insert({ access_token: accessToken, client_id: clientId });
+  nosql.insert({ access_token: accessToken, client_id: clientId, timestamp: new Date().getTime() });
   
   var tokenResponse = { access_token: accessToken, token_type: 'Bearer' }
   res.status(200).json(tokenResponse);

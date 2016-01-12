@@ -79,9 +79,13 @@ app.options('/resource', cors());
 app.post("/resource", cors(), getAccessToken, function(req, res){
 
 	if (req.access_token) {
-		res.json(resource);
+    if (new Date().getTime() - req.access_token.timestamp < 3000) {
+		  res.json(resource);
+    } else {
+		res.status(403).json({ error: 'token_expired' });      
+    }
 	} else {
-		res.status(401).end();
+		res.status(401).json({ error: 'unauthorized' });
 	}
 	
 });
