@@ -60,7 +60,7 @@ app.get("/authorize", function(req, res){
   
   // http://stackoverflow.com/questions/14417592/node-js-difference-between-req-query-and-req-params/14508182#14508182
   consolle.log('Received req with field query=' + JSON.stringify(req.query));
-	
+
 	/* Process the request, validate the client, and send the user to the approval page */
   consolle.log('authorization request from client_id=' + req.query.client_id);
   var client = getClient(req.query.client_id);
@@ -146,7 +146,7 @@ app.post("/token", function(req, res){
     consolle.log('form param is ' + req.body.client_id);  
     if (clientId) {
       consolle.log('Irregular attempt using two methods');  
-      res.status(401).json({ error: 'invalid_client' });
+      res.status(401).json({ error: 'invalid_client_using_two_authorization_methods' });
       return; 
     }
     clientId = req.body.client_id;
@@ -159,7 +159,7 @@ app.post("/token", function(req, res){
   var client = getClient(clientId);
   if (!client) {
     consolle.log('Unknown client!!');  
-    res.status(401).json({ error: 'invalid_client' });    
+    res.status(401).json({ error: 'invalid_client_client_unknown_to_us' });    
     return; 
   }
 
@@ -187,7 +187,7 @@ app.post("/token", function(req, res){
   consolle.log('grant code is ' + req.body.code);  
   if (!code) {
     consolle.log('invalid grant code: ' + req.body.code);  
-    res.status(400).json({ error: 'invalid_grant' });
+    res.status(400).json({ error: 'invalid_grant_code' });
     return;    
   }
   
@@ -200,9 +200,10 @@ app.post("/token", function(req, res){
     res.status(400).json({ error: 'invalid_grant' });
     return;    
   }
-  
+
   // redeem the authentication code by creating a token and storing it
   var accessToken = randomstring.generate();
+  consolle.log('inserting token: ' + accessToken);
   nosql.insert({ access_token: accessToken, client_id: clientId });
   
   var tokenResponse = { access_token: accessToken, token_type: 'Bearer' }
