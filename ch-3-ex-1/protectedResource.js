@@ -42,7 +42,7 @@ var getAccessToken = function(req, res, next) {
 	consolle.log('Incoming token: ' + inToken);
   
 	nosql.one(function(token) {
-		if (token.access_token == inToken+'23') {
+		if (token.access_token == inToken) {
 			return token;	
 		}
 	}, function(err, token) {
